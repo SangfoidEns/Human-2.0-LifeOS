@@ -1,0 +1,32 @@
+{
+  "name": "human-2-0-lifeos",
+  "version": "1.0.0",
+  "description": "Human 2.0: LifeOS — персональна bio-sync панель продуктивності всередині Telegram Mini App",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "telegram-mini-app",
+    "telegram-webapp",
+    "lifeos",
+    "biohacking",
+    "cyberpunk-ui"
+  ],
+  "author": "Human 2.0 Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
