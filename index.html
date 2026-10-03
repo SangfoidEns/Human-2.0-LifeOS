@@ -1,151 +1,1028 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>HUMAN 2.0 — LifeOS</title>
-  <meta name="description" content="Персональна bio-sync панель продуктивності: енергія, фокус, біоритми." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LifeOS — Humans 2.0</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --amber: #d29922;
+  --red: #f85149;
+  --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
 
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
 
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+/* ===== STATUS BAR ===== */
+.status-bar {
+  height: 42px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+.status-left { display: flex; gap: 16px; align-items: center; }
+.status-right { display: flex; gap: 12px; align-items: center; }
+.badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-offline { background: rgba(63,185,80,0.15); color: var(--green); }
+.badge-strain { background: rgba(210,153,34,0.15); color: var(--amber); }
+.badge-strain.high { background: rgba(248,81,73,0.15); color: var(--red); }
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(88,166,255,0.05);
+}
+.nav-btn:hover { color: var(--text); }
+
+/* ===== MAIN ===== */
+.main {
+  height: calc(100dvh - 42px - 46px);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ===== COMMON ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--sans);
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: rgba(88,166,255,0.15); border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: rgba(248,81,73,0.1); border-color: var(--red); color: var(--red); }
+.btn-success { background: rgba(63,185,80,0.1); border-color: var(--green); color: var(--green); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ===== COCKPIT ===== */
+.timeline {
+  position: relative;
+  height: 64px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+.timeline-track {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+}
+.slot {
+  flex: 1;
+  border-right: 1px solid var(--border);
+  position: relative;
+  font-size: 9px;
+  color: var(--text-dim);
+  padding-top: 4px;
+  text-align: center;
+}
+.slot.past { background: rgba(63,185,80,0.08); }
+.slot.active { background: rgba(88,166,255,0.15); }
+.slot.event { background: rgba(210,153,34,0.2); }
+.slot.buffer { background: rgba(63,185,80,0.12); }
+.now-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  z-index: 5;
+  box-shadow: 0 0 8px var(--accent);
+}
+.collision-banner {
+  background: rgba(248,81,73,0.12);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--red);
+  display: none;
+  margin-bottom: 12px;
+}
+.collision-banner.show { display: block; }
+
+/* ===== BIOMECHANICS ===== */
+.strain-scale {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0;
+}
+.strain-btn {
+  flex: 1;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+.strain-btn.active {
+  background: rgba(210,153,34,0.2);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.strain-btn.active.high {
+  background: rgba(248,81,73,0.2);
+  border-color: var(--red);
+  color: var(--red);
+}
+.strain-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  min-height: 40px;
+}
+.protocol-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.protocol-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.protocol-card:hover { border-color: var(--accent); }
+.protocol-card h4 { font-size: 13px; margin-bottom: 4px; }
+.protocol-card p { font-size: 11px; color: var(--text-dim); }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
+.switch {
+  width: 44px;
+  height: 24px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.switch.on { background: rgba(88,166,255,0.3); border-color: var(--accent); }
+.switch::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.switch.on::after { transform: translateX(20px); }
+
+/* ===== METABOLIC ===== */
+.digest-history {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.pairing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pair-btn {
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pair-btn:hover, .pair-btn.active {
+  border-color: var(--green);
+  background: rgba(63,185,80,0.08);
+}
+.pair-btn strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.pair-btn span { font-size: 11px; color: var(--text-dim); }
+.cook-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+.cook-time {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 70px;
+}
+
+/* ===== DAEMONS ===== */
+.laundry-list { display: flex; flex-direction: column; gap: 8px; }
+.laundry-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.laundry-item.done { opacity: 0.5; }
+.laundry-item.running { border-color: var(--accent); }
+.laundry-item.conflict { border-color: var(--red); background: rgba(248,81,73,0.08); }
+.laundry-info { font-size: 13px; }
+.laundry-timer { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+.preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.checklist { margin-top: 16px; }
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.check-item input { width: 16px; height: 16px; accent-color: var(--accent); }
+.pfand-alert {
+  background: rgba(210,153,34,0.12);
+  border: 1px solid var(--amber);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--amber);
+  font-weight: 500;
+}
+
+/* ===== CALIBRATION ===== */
+.progress-wrap { margin-bottom: 16px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+.progress-bar {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 4px;
+  transition: width 0.4s;
+}
+.log-list { max-height: 280px; overflow-y: auto; }
+.log-entry {
+  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.log-entry .time { font-family: var(--mono); color: var(--text-dim); white-space: nowrap; }
+.log-entry .msg { color: var(--text); }
+
+.actions-row { display: flex; gap: 8px; margin-top: 16px; }
+
+/* ===== TIMER OVERLAY ===== */
+.timer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  gap: 20px;
+}
+.timer-overlay.show { display: flex; }
+.timer-big {
+  font-family: var(--mono);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.timer-label { font-size: 16px; color: var(--text-dim); }
+.timer-guide {
+  max-width: 320px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  padding: 0 20px;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+  .protocol-grid, .pairing-grid { grid-template-columns: 1fr; }
+  .nav-btn { font-size: 11px; padding: 10px 4px; }
+}
+</style>
 </head>
 <body>
-  <!-- ===================== TECH WALL BACKGROUND ===================== -->
-  <div class="tech-wall" aria-hidden="true">
-    <div class="tech-wall__grid"></div>
-    <div class="tech-wall__glow tech-wall__glow--cyan"></div>
-    <div class="tech-wall__glow tech-wall__glow--blue"></div>
-    <div class="tech-wall__noise"></div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-left">
+    <span id="clock">--:--:--</span>
+    <span class="badge badge-offline">OFFLINE CORE: ACTIVE</span>
+  </div>
+  <div class="status-right">
+    <span class="badge badge-strain" id="strain-badge">STRAIN L3</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" data-tab="cockpit">Cockpit</button>
+  <button class="nav-btn" data-tab="bio">Biomechanics</button>
+  <button class="nav-btn" data-tab="meta">Metabolic</button>
+  <button class="nav-btn" data-tab="daemons">Daemons</button>
+  <button class="nav-btn" data-tab="calib">Calibration</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ===== COCKPIT ===== -->
+  <div class="panel active" id="panel-cockpit">
+    <div class="collision-banner" id="collision-banner">
+      ⚠ Конфлікт розкладу: побутовий процес перетинається зі зустріччю
+    </div>
+
+    <div class="card">
+      <div class="card-title">Інтерактивна шкала дня (08:00 – 23:00)</div>
+      <div class="timeline" id="timeline">
+        <div class="timeline-track" id="timeline-track"></div>
+        <div class="now-line" id="now-line"></div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--text-dim);margin-top:8px;flex-wrap:wrap;">
+        <span>■ Пройдено</span>
+        <span style="color:var(--accent)">■ Зараз</span>
+        <span style="color:var(--amber)">■ Подія</span>
+        <span style="color:var(--green)">■ Безпечне вікно</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Критичні події сьогодні</div>
+      <div id="events-list" style="font-size:13px;line-height:1.8;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Швидкий статус</div>
+      <div style="font-size:13px;color:var(--text-dim);" id="quick-status">
+        Система в режимі тіньового спостереження. Калібрування триває.
+      </div>
+    </div>
   </div>
 
-  <div id="app" class="app">
+  <!-- ===== BIOMECHANICS ===== -->
+  <div class="panel" id="panel-bio">
+    <div class="card">
+      <div class="card-title">Шкала напруження спини (L1–L10)</div>
+      <div class="strain-scale" id="strain-scale"></div>
+      <div class="strain-desc" id="strain-desc">L3 — Легкий тонус. Можна продовжувати звичайну активність.</div>
+    </div>
 
-    <!-- ===================== HEADER ===================== -->
-    <header class="header glass-panel">
-      <div class="header__identity">
-        <div class="avatar" id="userAvatar">
-          <span id="avatarInitial">?</span>
+    <div class="card">
+      <div class="card-title">Швидкі протоколи відновлення</div>
+      <div class="protocol-grid">
+        <div class="protocol-card" onclick="startProtocol('decomp')">
+          <h4>Декомпресія 90/90</h4>
+          <p>5–10 хв · дихання 4/8 · розслаблення Psoas</p>
         </div>
-        <div class="header__meta">
-          <p class="header__greeting">Вітаю в системі,</p>
-          <h2 class="header__username" id="userName">Гість</h2>
+        <div class="protocol-card" onclick="startProtocol('chandra')">
+          <h4>Chandra Namaskar</h4>
+          <p>Коло Місяця · бічне розвантаження без осьових нахилів</p>
         </div>
       </div>
-      <div class="header__status">
-        <span class="status-dot status-dot--online" id="connStatusDot"></span>
-        <span class="status-text" id="connStatusText">З’єднання...</span>
+
+      <div class="toggle-row">
+        <div>
+          <div style="font-size:13px;font-weight:500;">Zero-Standing Mode</div>
+          <div style="font-size:11px;color:var(--text-dim);">Блокує задачі стоячи >10 хв</div>
+        </div>
+        <div class="switch" id="zero-standing" onclick="toggleZeroStanding()"></div>
       </div>
-    </header>
-
-    <!-- ===================== BRAND / TITLE ===================== -->
-    <section class="brand">
-      <h1 class="brand__title">
-        <span class="brand__title-glow">HUMAN 2.0</span>
-      </h1>
-      <p class="brand__subtitle">L I F E · O S — Панель Синхронізації Біопотенціалу</p>
-    </section>
-
-    <!-- ===================== METRIC CARDS ===================== -->
-    <main class="dashboard">
-
-      <!-- ENERGY CARD -->
-      <section class="metric-card glass-panel" data-metric="energy">
-        <div class="metric-card__header">
-          <div class="metric-card__title-group">
-            <span class="metric-card__icon">⚡</span>
-            <h3 class="metric-card__title">Рівень Енергії</h3>
-          </div>
-          <span class="metric-badge" id="energyBadge" data-level="mid">65%</span>
-        </div>
-
-        <div class="slider-wrap">
-          <input
-            type="range"
-            id="energySlider"
-            class="neon-slider neon-slider--cyan"
-            min="0"
-            max="100"
-            step="1"
-            value="65"
-            aria-label="Рівень енергії"
-          />
-          <div class="slider-wrap__scale">
-            <span>Виснаження</span>
-            <span>Пік форми</span>
-          </div>
-        </div>
-        <p class="metric-card__hint" id="energyHint">Стабільний рівень — тримай темп.</p>
-      </section>
-
-      <!-- FOCUS CARD -->
-      <section class="metric-card glass-panel" data-metric="focus">
-        <div class="metric-card__header">
-          <div class="metric-card__title-group">
-            <span class="metric-card__icon">🎯</span>
-            <h3 class="metric-card__title">Рівень Фокусу</h3>
-          </div>
-          <span class="metric-badge" id="focusBadge" data-level="mid">50%</span>
-        </div>
-
-        <div class="slider-wrap">
-          <input
-            type="range"
-            id="focusSlider"
-            class="neon-slider neon-slider--blue"
-            min="0"
-            max="100"
-            step="1"
-            value="50"
-            aria-label="Рівень фокусу"
-          />
-          <div class="slider-wrap__scale">
-            <span>Розсіяний</span>
-            <span>Лазерний</span>
-          </div>
-        </div>
-        <p class="metric-card__hint" id="focusHint">Концентрація в нормі.</p>
-      </section>
-
-      <!-- BIORHYTHM / STATS CARD -->
-      <section class="metric-card glass-panel metric-card--stats">
-        <div class="metric-card__header">
-          <div class="metric-card__title-group">
-            <span class="metric-card__icon">🧬</span>
-            <h3 class="metric-card__title">Біоритм</h3>
-          </div>
-          <span class="metric-badge metric-badge--rhythm" id="biorhythmBadge" data-rhythm="stable">СТАБІЛЬНИЙ</span>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stats-grid__item">
-            <span class="stats-grid__label">Серія синхронізацій</span>
-            <span class="stats-grid__value" id="streakValue">0<span class="stats-grid__unit">днів</span></span>
-          </div>
-          <div class="stats-grid__item">
-            <span class="stats-grid__label">Останній синк</span>
-            <span class="stats-grid__value stats-grid__value--sm" id="lastSyncValue">—</span>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- ===================== ACTION BAR ===================== -->
-    <footer class="action-bar">
-      <button id="syncButton" class="btn-primary" type="button">
-        <span class="btn-primary__label">Синхронізувати дані</span>
-        <span class="btn-primary__spinner" id="syncSpinner" hidden></span>
-      </button>
-      <p class="action-bar__note" id="statusMessage" role="status" aria-live="polite"></p>
-    </footer>
-
+    </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- ===== METABOLIC ===== -->
+  <div class="panel" id="panel-meta">
+    <div class="card">
+      <div class="card-title">Контекст травлення (48 год)</div>
+      <div class="digest-history" id="digest-history">
+        Попередні дні: важка клітковина / сочевиця → Поточний пріоритет: легкі вуглеводи al dente
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Матриця швидкого гарніру</div>
+      <div class="pairing-grid">
+        <div class="pair-btn" onclick="selectProtein(this, 'tefteli')">
+          <strong>Тефтелі в овочевому соусі</strong>
+          <span>Готова білкова база</span>
+        </div>
+        <div class="pair-btn" onclick="selectProtein(this, 'chicken')">
+          <strong>Курка су-від</strong>
+          <span>Готова білкова база</span>
+        </div>
+        <div class="pair-btn" onclick="selectProtein(this, 'fish')">
+          <strong>Риба запечена</strong>
+          <span>Готова білкова база</span>
+        </div>
+        <div class="pair-btn" onclick="selectProtein(this, 'tofu')">
+          <strong>Тофу / Темпе</strong>
+          <span>Рослинна база</span>
+        </div>
+      </div>
+      <div id="pairing-result" style="font-size:13px;color:var(--green);min-height:24px;"></div>
+
+      <div class="cook-timer" id="cook-timer" style="display:none;">
+        <div class="cook-time" id="cook-time">08:00</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;" id="cook-label">Паста al dente</div>
+          <div style="font-size:11px;color:var(--text-dim);">Zero-Standing рекомендовано</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="stopCookTimer()">Стоп</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DAEMONS ===== -->
+  <div class="panel" id="panel-daemons">
+    <div class="card">
+      <div class="card-title">Конвеєр прання (Multi-Batch)</div>
+      <div class="laundry-list" id="laundry-list"></div>
+      <div class="preset-row">
+        <button class="btn btn-sm" onclick="addLaundry(15)">+15 хв</button>
+        <button class="btn btn-sm" onclick="addLaundry(45)">+45 хв</button>
+        <button class="btn btn-sm" onclick="addLaundry(70)">+70 хв</button>
+        <button class="btn btn-sm" onclick="addLaundry(115)">+115 хв</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pfand / Geofence Checklist (Rewe)</div>
+      <div class="checklist" id="checklist"></div>
+      <div class="pfand-alert" id="pfand-alert" style="display:none;">
+        [ ! ] Чек Pfand у кишені — віддати на касі
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CALIBRATION ===== -->
+  <div class="panel" id="panel-calib">
+    <div class="card">
+      <div class="card-title">Калібрування профілю</div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>День <span id="calib-day">14</span> з 60</span>
+          <span id="calib-pct">23%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="calib-fill" style="width:23%"></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);">
+        Фаза 1 — Тіньове спостереження. Система збирає патерни без втручання.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Локальний лог подій</div>
+      <div class="log-list" id="log-list"></div>
+      <div class="actions-row">
+        <button class="btn btn-sm" onclick="exportLog()">Експорт JSON</button>
+        <button class="btn btn-sm btn-danger" onclick="clearStorage()">Очистити localStorage</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMER OVERLAY -->
+<div class="timer-overlay" id="timer-overlay">
+  <div class="timer-big" id="overlay-time">05:00</div>
+  <div class="timer-label" id="overlay-label">Декомпресія 90/90</div>
+  <div class="timer-guide" id="overlay-guide"></div>
+  <button class="btn btn-primary" onclick="stopProtocol()">Завершити</button>
+</div>
+
+<script>
+/* ============================================================
+   LifeOS — Core Engine
+   Offline-First · localStorage · Vanilla JS
+   ============================================================ */
+
+const STORAGE_KEY = 'lifeos_v1';
+
+const defaultState = {
+  strain: 3,
+  zeroStanding: false,
+  calibDay: 14,
+  laundry: [
+    { id: 1, label: 'Партія №1', status: 'done', remaining: 0 },
+    { id: 2, label: 'Партія №2', status: 'done', remaining: 0 },
+    { id: 3, label: 'Партія №3', status: 'running', remaining: 115 },
+    { id: 4, label: 'Партія №4', status: 'pending', remaining: 0 }
+  ],
+  checklist: [
+    { id: 1, text: 'Овочі / зелень', done: false },
+    { id: 2, text: 'Білок (яйця / риба / м\'ясо)', done: false },
+    { id: 3, text: 'Паста твердих сортів', done: false },
+    { id: 4, text: 'Pfand-пляшки з собою', done: false, pfand: true }
+  ],
+  log: [],
+  digest: 'Попередні дні: важка клітковина / сочевиця → Поточний пріоритет: легкі вуглеводи al dente',
+  meetings: [
+    { time: '11:00', title: 'Ранкова синхронізація' },
+    { time: '14:30', title: 'Зустріч з командою' },
+    { time: '18:00', title: 'Рев\'ю проєкту' }
+  ]
+};
+
+let state = loadState();
+let cookInterval = null;
+let protocolInterval = null;
+let laundryInterval = null;
+
+/* ---------- STORAGE ---------- */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...defaultState, ...JSON.parse(raw) };
+  } catch (e) {}
+  return structuredClone(defaultState);
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function addLog(msg) {
+  const entry = { ts: Date.now(), msg };
+  state.log.unshift(entry);
+  if (state.log.length > 50) state.log.pop();
+  saveState();
+  renderLog();
+}
+
+/* ---------- CLOCK & TIMELINE ---------- */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  updateTimeline(now);
+  updateNowLine(now);
+}
+
+function updateTimeline(now) {
+  const track = document.getElementById('timeline-track');
+  if (track.children.length === 0) {
+    // 08:00 – 23:00 = 15 hours → 15 slots
+    for (let h = 8; h <= 22; h++) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.hour = h;
+      slot.textContent = h;
+      track.appendChild(slot);
+    }
+  }
+
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+
+  track.querySelectorAll('.slot').forEach(slot => {
+    const h = +slot.dataset.hour;
+    slot.classList.remove('past', 'active', 'event', 'buffer');
+    if (h < currentHour) slot.classList.add('past');
+    else if (h === currentHour) slot.classList.add('active');
+    // Events
+    if (state.meetings.some(m => parseInt(m.time) === h)) slot.classList.add('event');
+    // Buffers (safe windows) — simple heuristic: 1h after morning, between meetings
+    if ([9, 12, 16, 20].includes(h)) slot.classList.add('buffer');
+  });
+}
+
+function updateNowLine(now) {
+  const line = document.getElementById('now-line');
+  const start = 8;
+  const end = 23;
+  const totalMin = (end - start) * 60;
+  const currentMin = (now.getHours() - start) * 60 + now.getMinutes();
+  const pct = Math.max(0, Math.min(100, (currentMin / totalMin) * 100));
+  line.style.left = pct + '%';
+}
+
+function renderEvents() {
+  const list = document.getElementById('events-list');
+  list.innerHTML = state.meetings.map(m =>
+    `<div>▸ <strong>${m.time}</strong> — ${m.title}</div>`
+  ).join('');
+}
+
+/* ---------- STRAIN ---------- */
+function renderStrain() {
+  const scale = document.getElementById('strain-scale');
+  scale.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'strain-btn' + (i === state.strain ? ' active' : '') + (i >= 7 ? ' high' : '');
+    btn.textContent = 'L' + i;
+    btn.onclick = () => setStrain(i);
+    scale.appendChild(btn);
+  }
+  updateStrainUI();
+}
+
+function setStrain(level) {
+  state.strain = level;
+  saveState();
+  addLog(`Strain встановлено на L${level}`);
+  updateStrainUI();
+  renderStrain();
+}
+
+function updateStrainUI() {
+  const desc = document.getElementById('strain-desc');
+  const badge = document.getElementById('strain-badge');
+  badge.textContent = `STRAIN L${state.strain}`;
+  badge.className = 'badge badge-strain' + (state.strain >= 7 ? ' high' : '');
+
+  const texts = {
+    1: 'L1 — Майже нейтрально. Ідеальний стан.',
+    2: 'L2 — Легке відчуття тонусу.',
+    3: 'L3 — Легкий тонус. Можна продовжувати звичайну активність.',
+    4: 'L4 — Помітний дискомфорт після нахилів або сидіння.',
+    5: 'L5 — М\'язовий спазм середньої сили. Рекомендована декомпресія.',
+    6: 'L6 — Виражений спазм. Уникати осьових навантажень.',
+    7: 'L7 — Сильний дискомфорт. Потрібна сувора декомпресія.',
+    8: 'L8 — Високий рівень. Тільки лежачі/сидячі протоколи.',
+    9: 'L9 — Критичний. Zero-Standing Mode рекомендовано увімкнути.',
+    10: 'L10 — Максимальний. Повний відпочинок + протокол 90/90.'
+  };
+  desc.textContent = texts[state.strain] || '';
+}
+
+function toggleZeroStanding() {
+  state.zeroStanding = !state.zeroStanding;
+  saveState();
+  document.getElementById('zero-standing').classList.toggle('on', state.zeroStanding);
+  addLog(`Zero-Standing Mode: ${state.zeroStanding ? 'УВІМКНЕНО' : 'вимкнено'}`);
+  if (state.zeroStanding) {
+    document.getElementById('quick-status').textContent =
+      'Zero-Standing Mode активний. Усі задачі, що вимагають стояння >10 хв, заблоковані.';
+  }
+}
+
+/* ---------- PROTOCOLS ---------- */
+function startProtocol(type) {
+  const overlay = document.getElementById('timer-overlay');
+  const timeEl = document.getElementById('overlay-time');
+  const labelEl = document.getElementById('overlay-label');
+  const guideEl = document.getElementById('overlay-guide');
+
+  let seconds = type === 'decomp' ? 300 : 420; // 5 or 7 min
+  labelEl.textContent = type === 'decomp' ? 'Декомпресія 90/90' : 'Chandra Namaskar';
+  guideEl.innerHTML = type === 'decomp'
+    ? 'Ляж на спину. Ноги на стіл/диван під 90°. Коліна 90°. Дихай 4 сек вдих / 8 сек видих. Розслабляй поперек і Psoas.'
+    : 'Повільні бічні нахили стоячи або сидячи. Без скручувань і осьових згинів. Рухайся за диханням. 6–8 циклів на бік.';
+
+  overlay.classList.add('show');
+  clearInterval(protocolInterval);
+  protocolInterval = setInterval(() => {
+    seconds--;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    timeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (seconds <= 0) {
+      stopProtocol();
+      addLog(`Протокол ${labelEl.textContent} завершено`);
+      if (state.strain > 3) setStrain(Math.max(1, state.strain - 2));
+    }
+  }, 1000);
+}
+
+function stopProtocol() {
+  clearInterval(protocolInterval);
+  document.getElementById('timer-overlay').classList.remove('show');
+}
+
+/* ---------- METABOLIC ---------- */
+function selectProtein(el, type) {
+  document.querySelectorAll('.pair-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  const pairings = {
+    tefteli: { name: 'Спагеті / Паста твердих сортів', time: 8 },
+    chicken: { name: 'Рис basmati або кіноа', time: 12 },
+    fish: { name: 'Картопля al dente або кус-кус', time: 10 },
+    tofu: { name: 'Соба / гречана локшина', time: 7 }
+  };
+  const p = pairings[type];
+  document.getElementById('pairing-result').textContent =
+    `→ Оптимально: ${p.name} (${p.time} хв варки, Zero-Standing)`;
+
+  startCookTimer(p.time * 60, p.name);
+  addLog(`Обрано базу: ${el.querySelector('strong').textContent} → ${p.name}`);
+}
+
+function startCookTimer(seconds, label) {
+  clearInterval(cookInterval);
+  const wrap = document.getElementById('cook-timer');
+  const timeEl = document.getElementById('cook-time');
+  const labelEl = document.getElementById('cook-label');
+  wrap.style.display = 'flex';
+  labelEl.textContent = label;
+
+  let remaining = seconds;
+  const tick = () => {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    timeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (remaining <= 0) {
+      clearInterval(cookInterval);
+      timeEl.textContent = 'ГОТОВО';
+      timeEl.style.color = 'var(--green)';
+      addLog(`Таймер варіння завершено: ${label}`);
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+    remaining--;
+  };
+  tick();
+  cookInterval = setInterval(tick, 1000);
+}
+
+function stopCookTimer() {
+  clearInterval(cookInterval);
+  document.getElementById('cook-timer').style.display = 'none';
+  document.getElementById('cook-time').style.color = 'var(--accent)';
+}
+
+/* ---------- LAUNDRY DAEMON ---------- */
+function renderLaundry() {
+  const list = document.getElementById('laundry-list');
+  list.innerHTML = state.laundry.map(item => {
+    let statusClass = item.status;
+    let timerText = '';
+    if (item.status === 'running') {
+      const m = Math.floor(item.remaining / 60);
+      const s = item.remaining % 60;
+      timerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    } else if (item.status === 'done') timerText = '✓ Виконано';
+    else timerText = 'Відкладено';
+
+    // Collision check
+    const hasConflict = item.status === 'running' && checkCollision(item.remaining);
+    if (hasConflict) statusClass += ' conflict';
+
+    return `
+      <div class="laundry-item ${statusClass}">
+        <div class="laundry-info">
+          <strong>${item.label}</strong>
+          ${hasConflict ? '<div style="font-size:11px;color:var(--red);">⚠ Конфлікт зі зустріччю</div>' : ''}
+        </div>
+        <div class="laundry-timer">${timerText}</div>
+      </div>`;
+  }).join('');
+
+  // Update collision banner
+  const anyConflict = state.laundry.some(i => i.status === 'running' && checkCollision(i.remaining));
+  document.getElementById('collision-banner').classList.toggle('show', anyConflict);
+}
+
+function checkCollision(remainingSec) {
+  const now = new Date();
+  const end = new Date(now.getTime() + remainingSec * 1000);
+  return state.meetings.some(m => {
+    const [h, min] = m.time.split(':').map(Number);
+    const meet = new Date(now);
+    meet.setHours(h, min, 0, 0);
+    return meet > now && meet < end;
+  });
+}
+
+function addLaundry(minutes) {
+  const id = Date.now();
+  const remaining = minutes * 60;
+  const hasConflict = checkCollision(remaining);
+
+  if (hasConflict) {
+    alert('Конфлікт розкладу: таймер перетинається зі зустріччю. Змістіть запуск.');
+  }
+
+  // Find first pending or add new
+  let target = state.laundry.find(l => l.status === 'pending');
+  if (target) {
+    target.status = 'running';
+    target.remaining = remaining;
+  } else {
+    state.laundry.push({
+      id,
+      label: `Партія №${state.laundry.length + 1}`,
+      status: 'running',
+      remaining
+    });
+  }
+  saveState();
+  addLog(`Додано таймер прання: ${minutes} хв`);
+  renderLaundry();
+  startLaundryTicker();
+}
+
+function startLaundryTicker() {
+  clearInterval(laundryInterval);
+  laundryInterval = setInterval(() => {
+    let changed = false;
+    state.laundry.forEach(item => {
+      if (item.status === 'running' && item.remaining > 0) {
+        item.remaining--;
+        changed = true;
+        if (item.remaining <= 0) {
+          item.status = 'done';
+          addLog(`${item.label} завершено`);
+          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        }
+      }
+    });
+    if (changed) {
+      saveState();
+      renderLaundry();
+    }
+  }, 1000);
+}
+
+/* ---------- CHECKLIST ---------- */
+function renderChecklist() {
+  const list = document.getElementById('checklist');
+  list.innerHTML = state.checklist.map(item => `
+    <div class="check-item">
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})">
+      <span>${item.text}</span>
+    </div>
+  `).join('');
+
+  const pfand = state.checklist.find(i => i.pfand);
+  document.getElementById('pfand-alert').style.display =
+    pfand && !pfand.done ? 'block' : 'none';
+}
+
+function toggleCheck(id) {
+  const item = state.checklist.find(i => i.id === id);
+  if (item) {
+    item.done = !item.done;
+    saveState();
+    renderChecklist();
+    addLog(`Чек-лист: ${item.text} → ${item.done ? '✓' : '☐'}`);
+  }
+}
+
+/* ---------- CALIBRATION ---------- */
+function renderCalib() {
+  const day = state.calibDay;
+  const pct = Math.round((day / 60) * 100);
+  document.getElementById('calib-day').textContent = day;
+  document.getElementById('calib-pct').textContent = pct + '%';
+  document.getElementById('calib-fill').style.width = pct + '%';
+}
+
+function renderLog() {
+  const list = document.getElementById('log-list');
+  if (state.log.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">Лог порожній. Дії з\'являться тут.</div>';
+    return;
+  }
+  list.innerHTML = state.log.slice(0, 30).map(e => {
+    const t = new Date(e.ts).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return `<div class="log-entry"><span class="time">${t}</span><span class="msg">${e.msg}</span></div>`;
+  }).join('');
+}
+
+function exportLog() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lifeos-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  addLog('Експорт JSON виконано');
+}
+
+function clearStorage() {
+  if (confirm('Очистити весь localStorage? Це скине всі дані.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    state = structuredClone(defaultState);
+    saveState();
+    location.reload();
+  }
+}
+
+/* ---------- NAVIGATION ---------- */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- INIT ---------- */
+function init() {
+  renderStrain();
+  renderEvents();
+  renderLaundry();
+  renderChecklist();
+  renderCalib();
+  renderLog();
+  document.getElementById('zero-standing').classList.toggle('on', state.zeroStanding);
+  document.getElementById('digest-history').textContent = state.digest;
+
+  updateClock();
+  setInterval(updateClock, 1000);
+  startLaundryTicker();
+
+  addLog('LifeOS запущено · Offline Core Active');
+}
+
+init();
+</script>
 </body>
 </html>
