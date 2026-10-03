@@ -2,1027 +2,1125 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LifeOS — Humans 2.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>LifeOS · Neural Shell 2031</title>
 <style>
 :root {
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface-2: #21262d;
-  --border: #30363d;
-  --text: #e6edf3;
-  --text-dim: #8b949e;
-  --accent: #58a6ff;
-  --green: #3fb950;
-  --amber: #d29922;
-  --red: #f85149;
-  --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --bg: #03070d;
+  --surface: rgba(9, 17, 30, 0.72);
+  --glass: rgba(15, 28, 48, 0.55);
+  --border: rgba(0, 242, 254, 0.12);
+  --glow: rgba(0, 242, 254, 0.35);
+  --text: #e8f4ff;
+  --dim: #6b8aab;
+  --aqua: #00f2fe;
+  --jade: #00ff87;
+  --amber: #ff8c00;
+  --plasma: #ff4d6a;
+  --mono: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --radius: 20px;
+  --strain-hue: 180;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow: hidden;
+  user-select: none;
+}
 
-/* ===== STATUS BAR ===== */
-.status-bar {
-  height: 42px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+/* Ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 242, 254, 0.07), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 110%, rgba(0, 255, 135, 0.05), transparent),
+    radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 140, 0, 0.03), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top Neural Status */
+.neural-bar {
+  position: relative;
+  z-index: 10;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  font-size: 13px;
-  font-family: var(--mono);
-}
-.status-left { display: flex; gap: 16px; align-items: center; }
-.status-right { display: flex; gap: 12px; align-items: center; }
-.badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-.badge-offline { background: rgba(63,185,80,0.15); color: var(--green); }
-.badge-strain { background: rgba(210,153,34,0.15); color: var(--amber); }
-.badge-strain.high { background: rgba(248,81,73,0.15); color: var(--red); }
-
-/* ===== NAV ===== */
-.nav {
-  display: flex;
+  padding: 0 18px;
   background: var(--surface);
+  backdrop-filter: blur(24px) saturate(1.4);
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
 }
-.nav-btn {
-  flex: 1;
-  min-width: 90px;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-  white-space: nowrap;
+.neural-bar .clock {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--aqua);
+  text-shadow: 0 0 12px var(--glow);
 }
-.nav-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: rgba(88,166,255,0.05);
-}
-.nav-btn:hover { color: var(--text); }
-
-/* ===== MAIN ===== */
-.main {
-  height: calc(100dvh - 42px - 46px);
-  overflow-y: auto;
-  padding: 16px;
-}
-
-.panel { display: none; }
-.panel.active { display: block; }
-
-/* ===== COMMON ===== */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-.card-title {
-  font-size: 12px;
+.pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-  font-weight: 600;
 }
-.btn {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: var(--sans);
+.pill-core {
+  color: var(--jade);
+  border-color: rgba(0, 255, 135, 0.35);
+  background: rgba(0, 255, 135, 0.08);
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.15);
 }
-.btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn-primary { background: rgba(88,166,255,0.15); border-color: var(--accent); color: var(--accent); }
-.btn-danger { background: rgba(248,81,73,0.1); border-color: var(--red); color: var(--red); }
-.btn-success { background: rgba(63,185,80,0.1); border-color: var(--green); color: var(--green); }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
+.pill-strain {
+  color: var(--amber);
+  border-color: rgba(255, 140, 0, 0.4);
+  background: rgba(255, 140, 0, 0.1);
+}
+.pill-strain.crit {
+  color: var(--plasma);
+  border-color: rgba(255, 77, 106, 0.5);
+  background: rgba(255, 77, 106, 0.12);
+  box-shadow: 0 0 18px rgba(255, 77, 106, 0.25);
+}
 
-/* ===== COCKPIT ===== */
-.timeline {
+/* Bottom Thumb Nav — Bento Neural Nodes */
+.thumb-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: 78px;
+  padding: 10px 12px 18px;
+  display: flex;
+  gap: 8px;
+  background: linear-gradient(to top, rgba(3, 7, 13, 0.95), transparent);
+  backdrop-filter: blur(20px);
+}
+.nav-node {
+  flex: 1;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.35s var(--spring);
+  backdrop-filter: blur(12px);
+}
+.nav-node span { font-size: 16px; line-height: 1; }
+.nav-node.active {
+  color: var(--aqua);
+  border-color: rgba(0, 242, 254, 0.45);
+  background: rgba(0, 242, 254, 0.1);
+  box-shadow: 0 0 24px rgba(0, 242, 254, 0.2), inset 0 0 12px rgba(0, 242, 254, 0.05);
+  transform: translateY(-4px);
+}
+
+/* Main Stage */
+.stage {
   position: relative;
-  height: 64px;
-  background: var(--surface-2);
-  border-radius: 6px;
-  margin: 12px 0;
+  z-index: 5;
+  height: calc(100dvh - 48px - 78px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 14px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.view { display: none; }
+.view.active { display: block; animation: rise 0.4s var(--spring); }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass Orb / Panel */
+.orb {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
   overflow: hidden;
 }
-.timeline-track {
+.orb::before {
+  content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.4), transparent);
+}
+.orb-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--dim);
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+/* Temporal Wave */
+.wave-track {
+  position: relative;
+  height: 72px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.wave-fill {
+  position: absolute;
+  inset: 0;
   display: flex;
 }
-.slot {
+.wave-seg {
   flex: 1;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid rgba(0, 242, 254, 0.06);
   position: relative;
-  font-size: 9px;
-  color: var(--text-dim);
-  padding-top: 4px;
-  text-align: center;
+  transition: flex 0.6s var(--spring);
 }
-.slot.past { background: rgba(63,185,80,0.08); }
-.slot.active { background: rgba(88,166,255,0.15); }
-.slot.event { background: rgba(210,153,34,0.2); }
-.slot.buffer { background: rgba(63,185,80,0.12); }
-.now-line {
+.wave-seg .h {
+  position: absolute;
+  top: 6px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--dim);
+}
+.wave-seg.past { background: rgba(0, 255, 135, 0.06); }
+.wave-seg.now {
+  background: rgba(0, 242, 254, 0.14);
+  box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.1);
+}
+.wave-seg.event { background: rgba(255, 140, 0, 0.12); }
+.wave-seg.buffer { background: rgba(0, 255, 135, 0.08); }
+.wave-seg.compressed { flex: 0.45; opacity: 0.5; }
+.wave-seg.expanded { flex: 1.6; }
+.scanline {
   position: absolute;
   top: 0; bottom: 0;
   width: 2px;
-  background: var(--accent);
+  background: var(--aqua);
+  box-shadow: 0 0 14px var(--aqua), 0 0 28px rgba(0, 242, 254, 0.4);
   z-index: 5;
-  box-shadow: 0 0 8px var(--accent);
+  transition: left 1s linear;
 }
-.collision-banner {
-  background: rgba(248,81,73,0.12);
-  border: 1px solid var(--red);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: var(--red);
-  display: none;
-  margin-bottom: 12px;
-}
-.collision-banner.show { display: block; }
 
-/* ===== BIOMECHANICS ===== */
-.strain-scale {
+/* Strain Neural Ring */
+.strain-ring {
   display: flex;
-  gap: 4px;
-  margin: 12px 0;
-}
-.strain-btn {
-  flex: 1;
-  height: 36px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-dim);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: var(--mono);
-}
-.strain-btn.active {
-  background: rgba(210,153,34,0.2);
-  border-color: var(--amber);
-  color: var(--amber);
-}
-.strain-btn.active.high {
-  background: rgba(248,81,73,0.2);
-  border-color: var(--red);
-  color: var(--red);
-}
-.strain-desc {
-  font-size: 13px;
-  color: var(--text-dim);
+  justify-content: center;
+  gap: 5px;
   margin-bottom: 16px;
-  min-height: 40px;
+  flex-wrap: wrap;
 }
-.protocol-grid {
+.s-node {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.protocol-card {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px;
+  place-items: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.3s var(--spring);
 }
-.protocol-card:hover { border-color: var(--accent); }
-.protocol-card h4 { font-size: 13px; margin-bottom: 4px; }
-.protocol-card p { font-size: 11px; color: var(--text-dim); }
-.toggle-row {
+.s-node.active {
+  color: var(--aqua);
+  border-color: var(--aqua);
+  background: rgba(0, 242, 254, 0.12);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+  transform: scale(1.12);
+}
+.s-node.crit.active {
+  color: var(--plasma);
+  border-color: var(--plasma);
+  background: rgba(255, 77, 106, 0.15);
+  box-shadow: 0 0 22px rgba(255, 77, 106, 0.35);
+}
+.strain-msg {
+  text-align: center;
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.5;
+  min-height: 48px;
+  margin-bottom: 16px;
+}
+
+/* Action Pills */
+.action-row {
+  display: flex;
+  gap: 10px;
+}
+.action-pill {
+  flex: 1;
+  min-height: 72px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.3s var(--spring);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.action-pill:active { transform: scale(0.96); }
+.action-pill:hover {
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.12);
+}
+.action-pill h4 { font-size: 13px; margin-bottom: 4px; color: var(--text); }
+.action-pill p { font-size: 11px; color: var(--dim); }
+
+/* Toggle */
+.bio-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
-  margin-top: 12px;
 }
-.switch {
-  width: 44px;
-  height: 24px;
-  background: var(--surface-2);
-  border-radius: 12px;
+.bio-toggle .label { font-size: 13px; font-weight: 600; }
+.bio-toggle .sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.nexus {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
   position: relative;
   cursor: pointer;
-  border: 1px solid var(--border);
+  transition: all 0.3s;
 }
-.switch.on { background: rgba(88,166,255,0.3); border-color: var(--accent); }
-.switch::after {
+.nexus.on {
+  background: rgba(0, 242, 254, 0.2);
+  border-color: var(--aqua);
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+}
+.nexus::after {
   content: '';
   position: absolute;
-  width: 18px; height: 18px;
-  background: #fff;
+  width: 22px; height: 22px;
   border-radius: 50%;
+  background: #fff;
   top: 2px; left: 2px;
-  transition: transform 0.2s;
+  transition: transform 0.3s var(--spring);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
-.switch.on::after { transform: translateX(20px); }
+.nexus.on::after { transform: translateX(24px); }
 
-/* ===== METABOLIC ===== */
-.digest-history {
-  font-size: 13px;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-.pairing-grid {
+/* Metabolic */
+.pair-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 12px;
 }
-.pair-btn {
-  padding: 12px;
-  background: var(--surface-2);
+.pair-orb {
+  min-height: 70px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.pair-btn:hover, .pair-btn.active {
-  border-color: var(--green);
-  background: rgba(63,185,80,0.08);
-}
-.pair-btn strong { display: block; font-size: 13px; margin-bottom: 2px; }
-.pair-btn span { font-size: 11px; color: var(--text-dim); }
-.cook-timer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--surface-2);
   padding: 14px;
-  border-radius: 6px;
-  margin-top: 12px;
+  cursor: pointer;
+  transition: all 0.3s var(--spring);
+  text-align: left;
 }
-.cook-time {
-  font-family: var(--mono);
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--accent);
-  min-width: 70px;
+.pair-orb.active {
+  border-color: var(--jade);
+  background: rgba(0, 255, 135, 0.08);
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.15);
 }
-
-/* ===== DAEMONS ===== */
-.laundry-list { display: flex; flex-direction: column; gap: 8px; }
-.laundry-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 14px;
-}
-.laundry-item.done { opacity: 0.5; }
-.laundry-item.running { border-color: var(--accent); }
-.laundry-item.conflict { border-color: var(--red); background: rgba(248,81,73,0.08); }
-.laundry-info { font-size: 13px; }
-.laundry-timer { font-family: var(--mono); font-size: 14px; color: var(--accent); }
-.preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-.checklist { margin-top: 16px; }
-.check-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  font-size: 13px;
-  border-bottom: 1px solid var(--border);
-}
-.check-item input { width: 16px; height: 16px; accent-color: var(--accent); }
-.pfand-alert {
-  background: rgba(210,153,34,0.12);
-  border: 1px solid var(--amber);
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--amber);
-  font-weight: 500;
-}
-
-/* ===== CALIBRATION ===== */
-.progress-wrap { margin-bottom: 16px; }
-.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
-.progress-bar {
-  height: 8px;
-  background: var(--surface-2);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--green));
-  border-radius: 4px;
-  transition: width 0.4s;
-}
-.log-list { max-height: 280px; overflow-y: auto; }
-.log-entry {
+.pair-orb strong { display: block; font-size: 13px; margin-bottom: 3px; }
+.pair-orb span { font-size: 11px; color: var(--dim); }
+.synergy {
   font-size: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  color: var(--jade);
+  min-height: 20px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
 }
-.log-entry .time { font-family: var(--mono); color: var(--text-dim); white-space: nowrap; }
-.log-entry .msg { color: var(--text); }
-
-.actions-row { display: flex; gap: 8px; margin-top: 16px; }
-
-/* ===== TIMER OVERLAY ===== */
-.timer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
+.cook-hud {
   display: none;
   align-items: center;
-  justify-content: center;
-  z-index: 100;
-  flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
 }
-.timer-overlay.show { display: flex; }
-.timer-big {
+.cook-hud.show { display: flex; }
+.cook-digit {
   font-family: var(--mono);
-  font-size: 64px;
+  font-size: 28px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--aqua);
+  text-shadow: 0 0 16px var(--glow);
+  min-width: 76px;
 }
-.timer-label { font-size: 16px; color: var(--text-dim); }
-.timer-guide {
+
+/* Daemons */
+.daemon-list { display: flex; flex-direction: column; gap: 8px; }
+.daemon-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-height: 56px;
+  transition: border-color 0.3s;
+}
+.daemon-item.running { border-color: rgba(0, 242, 254, 0.4); }
+.daemon-item.conflict {
+  border-color: var(--plasma);
+  background: rgba(255, 77, 106, 0.08);
+  box-shadow: 0 0 16px rgba(255, 77, 106, 0.15);
+}
+.daemon-item.done { opacity: 0.4; }
+.daemon-time {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--aqua);
+  text-shadow: 0 0 10px var(--glow);
+}
+.preset-flow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.preset {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.preset:active { transform: scale(0.95); border-color: var(--aqua); }
+
+.check-flow { margin-top: 8px; }
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.06);
+  font-size: 14px;
+}
+.check-row input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--aqua);
+}
+.pfand {
+  display: none;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 140, 0, 0.1);
+  border: 1px solid rgba(255, 140, 0, 0.35);
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 140, 0, 0.12);
+}
+.pfand.show { display: block; }
+
+/* Calibration */
+.calib-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.calib-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--aqua), var(--jade));
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+  transition: width 0.6s var(--spring);
+}
+.log-stream {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.log-line {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.05);
+}
+.log-line .t {
+  font-family: var(--mono);
+  color: var(--dim);
+  white-space: nowrap;
+}
+.ctrl-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.ctrl {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ctrl.danger { border-color: rgba(255, 77, 106, 0.4); color: var(--plasma); }
+
+/* Overlay */
+.veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 13, 0.92);
+  backdrop-filter: blur(16px);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 28px;
+}
+.veil.show { display: flex; }
+.veil-time {
+  font-family: var(--mono);
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--aqua);
+  text-shadow: 0 0 40px var(--glow);
+}
+.veil-guide {
   max-width: 320px;
   text-align: center;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--text);
-  padding: 0 20px;
+  color: var(--dim);
+}
+.veil-btn {
+  min-height: 52px;
+  min-width: 160px;
+  margin-top: 12px;
+  border-radius: 16px;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  color: var(--aqua);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(0, 242, 254, 0.15);
 }
 
-/* ===== MOBILE ===== */
-@media (max-width: 600px) {
-  .protocol-grid, .pairing-grid { grid-template-columns: 1fr; }
-  .nav-btn { font-size: 11px; padding: 10px 4px; }
+/* Collision */
+.alert {
+  display: none;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 77, 106, 0.1);
+  border: 1px solid rgba(255, 77, 106, 0.4);
+  color: var(--plasma);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 77, 106, 0.12);
+}
+.alert.show { display: block; }
+
+@media (max-width: 400px) {
+  .pair-grid { grid-template-columns: 1fr; }
+  .action-row { flex-direction: column; }
 }
 </style>
 </head>
 <body>
 
-<!-- STATUS BAR -->
-<div class="status-bar">
-  <div class="status-left">
-    <span id="clock">--:--:--</span>
-    <span class="badge badge-offline">OFFLINE CORE: ACTIVE</span>
-  </div>
-  <div class="status-right">
-    <span class="badge badge-strain" id="strain-badge">STRAIN L3</span>
+<div class="neural-bar">
+  <div class="clock" id="clock">00:00:00</div>
+  <div style="display:flex;gap:8px;">
+    <div class="pill pill-core">NEURAL CORE</div>
+    <div class="pill pill-strain" id="strain-pill">L3</div>
   </div>
 </div>
 
-<!-- NAV -->
-<div class="nav">
-  <button class="nav-btn active" data-tab="cockpit">Cockpit</button>
-  <button class="nav-btn" data-tab="bio">Biomechanics</button>
-  <button class="nav-btn" data-tab="meta">Metabolic</button>
-  <button class="nav-btn" data-tab="daemons">Daemons</button>
-  <button class="nav-btn" data-tab="calib">Calibration</button>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
-  <!-- ===== COCKPIT ===== -->
-  <div class="panel active" id="panel-cockpit">
-    <div class="collision-banner" id="collision-banner">
-      ⚠ Конфлікт розкладу: побутовий процес перетинається зі зустріччю
-    </div>
-
-    <div class="card">
-      <div class="card-title">Інтерактивна шкала дня (08:00 – 23:00)</div>
-      <div class="timeline" id="timeline">
-        <div class="timeline-track" id="timeline-track"></div>
-        <div class="now-line" id="now-line"></div>
+<div class="stage">
+  <!-- COCKPIT -->
+  <div class="view active" id="view-cockpit">
+    <div class="alert" id="alert">⚠ Темпоральний конфлікт · побутовий процес перетинає гравітаційний центр</div>
+    <div class="orb">
+      <div class="orb-label">Еластична хроно-хвиля</div>
+      <div class="wave-track">
+        <div class="wave-fill" id="wave"></div>
+        <div class="scanline" id="scan"></div>
       </div>
-      <div style="display:flex;gap:12px;font-size:11px;color:var(--text-dim);margin-top:8px;flex-wrap:wrap;">
-        <span>■ Пройдено</span>
-        <span style="color:var(--accent)">■ Зараз</span>
-        <span style="color:var(--amber)">■ Подія</span>
-        <span style="color:var(--green)">■ Безпечне вікно</span>
+      <div style="display:flex;gap:12px;font-size:10px;color:var(--dim);">
+        <span style="color:var(--jade)">● Пройдено</span>
+        <span style="color:var(--aqua)">● Зараз</span>
+        <span style="color:var(--amber)">● Гравітація</span>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-title">Критичні події сьогодні</div>
-      <div id="events-list" style="font-size:13px;line-height:1.8;"></div>
+    <div class="orb">
+      <div class="orb-label">Гравітаційні центри</div>
+      <div id="events" style="font-size:13px;line-height:2;"></div>
     </div>
-
-    <div class="card">
-      <div class="card-title">Швидкий статус</div>
-      <div style="font-size:13px;color:var(--text-dim);" id="quick-status">
-        Система в режимі тіньового спостереження. Калібрування триває.
-      </div>
+    <div class="orb">
+      <div class="orb-label">Нейро-статус</div>
+      <div id="status" style="font-size:13px;color:var(--dim);line-height:1.55;">Симбіоз активний · Фаза тіньового калібрування</div>
     </div>
   </div>
 
-  <!-- ===== BIOMECHANICS ===== -->
-  <div class="panel" id="panel-bio">
-    <div class="card">
-      <div class="card-title">Шкала напруження спини (L1–L10)</div>
-      <div class="strain-scale" id="strain-scale"></div>
-      <div class="strain-desc" id="strain-desc">L3 — Легкий тонус. Можна продовжувати звичайну активність.</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Швидкі протоколи відновлення</div>
-      <div class="protocol-grid">
-        <div class="protocol-card" onclick="startProtocol('decomp')">
-          <h4>Декомпресія 90/90</h4>
-          <p>5–10 хв · дихання 4/8 · розслаблення Psoas</p>
+  <!-- BIO -->
+  <div class="view" id="view-bio">
+    <div class="orb">
+      <div class="orb-label">Біомеханічний контур · Поперек</div>
+      <div class="strain-ring" id="strain-ring"></div>
+      <div class="strain-msg" id="strain-msg"></div>
+      <div class="action-row">
+        <div class="action-pill" id="act-decomp">
+          <h4>Psoas Release</h4>
+          <p>90/90 · 5 хв · 4/8 дихання</p>
         </div>
-        <div class="protocol-card" onclick="startProtocol('chandra')">
-          <h4>Chandra Namaskar</h4>
-          <p>Коло Місяця · бічне розвантаження без осьових нахилів</p>
+        <div class="action-pill" id="act-chandra">
+          <h4>Chandra Flow</h4>
+          <p>Бічне розвантаження · 7 хв</p>
         </div>
       </div>
-
-      <div class="toggle-row">
+      <div class="bio-toggle">
         <div>
-          <div style="font-size:13px;font-weight:500;">Zero-Standing Mode</div>
-          <div style="font-size:11px;color:var(--text-dim);">Блокує задачі стоячи >10 хв</div>
+          <div class="label">Zero-Standing Nexus</div>
+          <div class="sub">Автоблокування вертикальних задач</div>
         </div>
-        <div class="switch" id="zero-standing" onclick="toggleZeroStanding()"></div>
+        <div class="nexus" id="nexus"></div>
       </div>
     </div>
   </div>
 
-  <!-- ===== METABOLIC ===== -->
-  <div class="panel" id="panel-meta">
-    <div class="card">
-      <div class="card-title">Контекст травлення (48 год)</div>
-      <div class="digest-history" id="digest-history">
-        Попередні дні: важка клітковина / сочевиця → Поточний пріоритет: легкі вуглеводи al dente
+  <!-- META -->
+  <div class="view" id="view-meta">
+    <div class="orb">
+      <div class="orb-label">Хроно-метаболічний синергетик</div>
+      <div id="digest" style="font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:14px;"></div>
+      <div class="pair-grid">
+        <div class="pair-orb" data-p="tefteli"><strong>Тефтелі</strong><span>Овочевий соус</span></div>
+        <div class="pair-orb" data-p="chicken"><strong>Курка</strong><span>Су-від</span></div>
+        <div class="pair-orb" data-p="fish"><strong>Риба</strong><span>Парова / запечена</span></div>
+        <div class="pair-orb" data-p="tofu"><strong>Тофу</strong><span>Рослинний білок</span></div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Матриця швидкого гарніру</div>
-      <div class="pairing-grid">
-        <div class="pair-btn" onclick="selectProtein(this, 'tefteli')">
-          <strong>Тефтелі в овочевому соусі</strong>
-          <span>Готова білкова база</span>
-        </div>
-        <div class="pair-btn" onclick="selectProtein(this, 'chicken')">
-          <strong>Курка су-від</strong>
-          <span>Готова білкова база</span>
-        </div>
-        <div class="pair-btn" onclick="selectProtein(this, 'fish')">
-          <strong>Риба запечена</strong>
-          <span>Готова білкова база</span>
-        </div>
-        <div class="pair-btn" onclick="selectProtein(this, 'tofu')">
-          <strong>Тофу / Темпе</strong>
-          <span>Рослинна база</span>
-        </div>
-      </div>
-      <div id="pairing-result" style="font-size:13px;color:var(--green);min-height:24px;"></div>
-
-      <div class="cook-timer" id="cook-timer" style="display:none;">
-        <div class="cook-time" id="cook-time">08:00</div>
+      <div class="synergy" id="synergy"></div>
+      <div class="cook-hud" id="cook-hud">
+        <div class="cook-digit" id="cook-digit">00:00</div>
         <div style="flex:1;">
-          <div style="font-size:13px;font-weight:500;" id="cook-label">Паста al dente</div>
-          <div style="font-size:11px;color:var(--text-dim);">Zero-Standing рекомендовано</div>
+          <div style="font-size:13px;font-weight:600;" id="cook-name">—</div>
+          <div style="font-size:11px;color:var(--dim);">Постпрандіальна ясність</div>
         </div>
-        <button class="btn btn-sm btn-danger" onclick="stopCookTimer()">Стоп</button>
+        <button class="preset" id="cook-stop" style="min-height:40px;">Стоп</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== DAEMONS ===== -->
-  <div class="panel" id="panel-daemons">
-    <div class="card">
-      <div class="card-title">Конвеєр прання (Multi-Batch)</div>
-      <div class="laundry-list" id="laundry-list"></div>
-      <div class="preset-row">
-        <button class="btn btn-sm" onclick="addLaundry(15)">+15 хв</button>
-        <button class="btn btn-sm" onclick="addLaundry(45)">+45 хв</button>
-        <button class="btn btn-sm" onclick="addLaundry(70)">+70 хв</button>
-        <button class="btn btn-sm" onclick="addLaundry(115)">+115 хв</button>
+  <!-- DAEMONS -->
+  <div class="view" id="view-daemons">
+    <div class="orb">
+      <div class="orb-label">Мультипотік · Прання</div>
+      <div class="daemon-list" id="daemons"></div>
+      <div class="preset-flow">
+        <button class="preset" data-m="15">+15</button>
+        <button class="preset" data-m="45">+45</button>
+        <button class="preset" data-m="70">+70</button>
+        <button class="preset" data-m="115">+115</button>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-title">Pfand / Geofence Checklist (Rewe)</div>
-      <div class="checklist" id="checklist"></div>
-      <div class="pfand-alert" id="pfand-alert" style="display:none;">
-        [ ! ] Чек Pfand у кишені — віддати на касі
-      </div>
+    <div class="orb">
+      <div class="orb-label">Geofence · Rewe</div>
+      <div class="check-flow" id="checks"></div>
+      <div class="pfand" id="pfand">⚡ Pfand-чек у кишені — віддати на касі</div>
     </div>
   </div>
 
-  <!-- ===== CALIBRATION ===== -->
-  <div class="panel" id="panel-calib">
-    <div class="card">
-      <div class="card-title">Калібрування профілю</div>
-      <div class="progress-wrap">
-        <div class="progress-label">
-          <span>День <span id="calib-day">14</span> з 60</span>
-          <span id="calib-pct">23%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="calib-fill" style="width:23%"></div>
-        </div>
+  <!-- CALIB -->
+  <div class="view" id="view-calib">
+    <div class="orb">
+      <div class="orb-label">Нейро-калібрування</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim);">
+        <span>День <span id="c-day">14</span> / 60</span>
+        <span id="c-pct">23%</span>
       </div>
-      <div style="font-size:12px;color:var(--text-dim);">
-        Фаза 1 — Тіньове спостереження. Система збирає патерни без втручання.
-      </div>
+      <div class="calib-bar"><div class="calib-fill" id="c-fill" style="width:23%"></div></div>
+      <div style="font-size:12px;color:var(--dim);">Фаза 1 · Тіньове спостереження патернів</div>
     </div>
-
-    <div class="card">
-      <div class="card-title">Локальний лог подій</div>
-      <div class="log-list" id="log-list"></div>
-      <div class="actions-row">
-        <button class="btn btn-sm" onclick="exportLog()">Експорт JSON</button>
-        <button class="btn btn-sm btn-danger" onclick="clearStorage()">Очистити localStorage</button>
+    <div class="orb">
+      <div class="orb-label">Потік подій</div>
+      <div class="log-stream" id="logs"></div>
+      <div class="ctrl-row">
+        <button class="ctrl" id="btn-export">Експорт</button>
+        <button class="ctrl" id="btn-import">Імпорт</button>
+        <button class="ctrl danger" id="btn-wipe">Скинути</button>
       </div>
+      <input type="file" id="file" accept="application/json" hidden>
     </div>
   </div>
 </div>
 
-<!-- TIMER OVERLAY -->
-<div class="timer-overlay" id="timer-overlay">
-  <div class="timer-big" id="overlay-time">05:00</div>
-  <div class="timer-label" id="overlay-label">Декомпресія 90/90</div>
-  <div class="timer-guide" id="overlay-guide"></div>
-  <button class="btn btn-primary" onclick="stopProtocol()">Завершити</button>
+<div class="thumb-nav">
+  <button class="nav-node active" data-v="cockpit"><span>◈</span>Cockpit</button>
+  <button class="nav-node" data-v="bio"><span>◎</span>Bio</button>
+  <button class="nav-node" data-v="meta"><span>⬡</span>Meta</button>
+  <button class="nav-node" data-v="daemons"><span>⬡</span>Daemons</button>
+  <button class="nav-node" data-v="calib"><span>◉</span>Calib</button>
+</div>
+
+<div class="veil" id="veil">
+  <div class="veil-time" id="veil-time">05:00</div>
+  <div style="font-size:16px;font-weight:600;" id="veil-title">—</div>
+  <div class="veil-guide" id="veil-guide"></div>
+  <button class="veil-btn" id="veil-stop">Завершити цикл</button>
 </div>
 
 <script>
-/* ============================================================
-   LifeOS — Core Engine
-   Offline-First · localStorage · Vanilla JS
-   ============================================================ */
+(() => {
+  'use strict';
+  const KEY = 'lifeos_neural_2031';
+  const MEETS = [
+    { t: '11:00', n: 'Синхронізація' },
+    { t: '14:30', n: 'Командний вузол' },
+    { t: '18:00', n: 'Рев\'ю' }
+  ];
+  const PAIR = {
+    tefteli: { n: 'Паста al dente', s: 480, note: 'Повільний вуглевод · стабільна глюкоза' },
+    chicken: { n: 'Рис basmati', s: 720, note: 'Низький GI · ясність на 2+ год' },
+    fish:    { n: 'Картопля al dente', s: 600, note: 'Помірний інсулін · фокус' },
+    tofu:    { n: 'Соба / локшина', s: 420, note: 'Легкий · швидке засвоєння' }
+  };
+  const STRAIN = {
+    1:'Нейтральний тонус · оптимальний біоритм',
+    2:'Мікро-тонус · система стабільна',
+    3:'Легкий тонус · звичайний режим',
+    4:'Дискомфорт після статичних поз',
+    5:'Спазм середньої сили · рекомендовано Psoas',
+    6:'Виражений спазм · стискаю побутові слоти',
+    7:'Критичний · Zero-Standing + розширена декомпресія',
+    8:'Високе навантаження · лише горизонтальні протоколи',
+    9:'Аварійний · повний Zero-Standing',
+    10:'Максимум · тільки відновлення'
+  };
 
-const STORAGE_KEY = 'lifeos_v1';
-
-const defaultState = {
-  strain: 3,
-  zeroStanding: false,
-  calibDay: 14,
-  laundry: [
-    { id: 1, label: 'Партія №1', status: 'done', remaining: 0 },
-    { id: 2, label: 'Партія №2', status: 'done', remaining: 0 },
-    { id: 3, label: 'Партія №3', status: 'running', remaining: 115 },
-    { id: 4, label: 'Партія №4', status: 'pending', remaining: 0 }
-  ],
-  checklist: [
-    { id: 1, text: 'Овочі / зелень', done: false },
-    { id: 2, text: 'Білок (яйця / риба / м\'ясо)', done: false },
-    { id: 3, text: 'Паста твердих сортів', done: false },
-    { id: 4, text: 'Pfand-пляшки з собою', done: false, pfand: true }
-  ],
-  log: [],
-  digest: 'Попередні дні: важка клітковина / сочевиця → Поточний пріоритет: легкі вуглеводи al dente',
-  meetings: [
-    { time: '11:00', title: 'Ранкова синхронізація' },
-    { time: '14:30', title: 'Зустріч з командою' },
-    { time: '18:00', title: 'Рев\'ю проєкту' }
-  ]
-};
-
-let state = loadState();
-let cookInterval = null;
-let protocolInterval = null;
-let laundryInterval = null;
-
-/* ---------- STORAGE ---------- */
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaultState, ...JSON.parse(raw) };
-  } catch (e) {}
-  return structuredClone(defaultState);
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function addLog(msg) {
-  const entry = { ts: Date.now(), msg };
-  state.log.unshift(entry);
-  if (state.log.length > 50) state.log.pop();
-  saveState();
-  renderLog();
-}
-
-/* ---------- CLOCK & TIMELINE ---------- */
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  updateTimeline(now);
-  updateNowLine(now);
-}
-
-function updateTimeline(now) {
-  const track = document.getElementById('timeline-track');
-  if (track.children.length === 0) {
-    // 08:00 – 23:00 = 15 hours → 15 slots
-    for (let h = 8; h <= 22; h++) {
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      slot.dataset.hour = h;
-      slot.textContent = h;
-      track.appendChild(slot);
-    }
-  }
-
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
-
-  track.querySelectorAll('.slot').forEach(slot => {
-    const h = +slot.dataset.hour;
-    slot.classList.remove('past', 'active', 'event', 'buffer');
-    if (h < currentHour) slot.classList.add('past');
-    else if (h === currentHour) slot.classList.add('active');
-    // Events
-    if (state.meetings.some(m => parseInt(m.time) === h)) slot.classList.add('event');
-    // Buffers (safe windows) — simple heuristic: 1h after morning, between meetings
-    if ([9, 12, 16, 20].includes(h)) slot.classList.add('buffer');
+  const def = () => ({
+    strain: 3,
+    zero: false,
+    day: 14,
+    digest: 'Попередній цикл: важка клітковина → пріоритет: повільні вуглеводи + білок',
+    laundry: [
+      { id:1, label:'Потік А', end:null, done:true },
+      { id:2, label:'Потік B', end:null, done:true },
+      { id:3, label:'Потік C', end:null, done:false },
+      { id:4, label:'Потік D', end:null, done:false }
+    ],
+    checks: [
+      { id:1, txt:'Овочі / зелень', done:false },
+      { id:2, txt:'Білок', done:false },
+      { id:3, txt:'Паста твердих сортів', done:false },
+      { id:4, txt:'Pfand з собою', done:false, pfand:true }
+    ],
+    cook: { end:null, name:'' },
+    proto: { end:null, title:'', guide:'' },
+    log: []
   });
-}
 
-function updateNowLine(now) {
-  const line = document.getElementById('now-line');
-  const start = 8;
-  const end = 23;
-  const totalMin = (end - start) * 60;
-  const currentMin = (now.getHours() - start) * 60 + now.getMinutes();
-  const pct = Math.max(0, Math.min(100, (currentMin / totalMin) * 100));
-  line.style.left = pct + '%';
-}
+  let S = load();
+  let audioCtx = null;
 
-function renderEvents() {
-  const list = document.getElementById('events-list');
-  list.innerHTML = state.meetings.map(m =>
-    `<div>▸ <strong>${m.time}</strong> — ${m.title}</div>`
-  ).join('');
-}
-
-/* ---------- STRAIN ---------- */
-function renderStrain() {
-  const scale = document.getElementById('strain-scale');
-  scale.innerHTML = '';
-  for (let i = 1; i <= 10; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'strain-btn' + (i === state.strain ? ' active' : '') + (i >= 7 ? ' high' : '');
-    btn.textContent = 'L' + i;
-    btn.onclick = () => setStrain(i);
-    scale.appendChild(btn);
+  function load() {
+    try {
+      const r = localStorage.getItem(KEY);
+      if (r) return { ...def(), ...JSON.parse(r) };
+    } catch(_){}
+    return def();
   }
-  updateStrainUI();
-}
-
-function setStrain(level) {
-  state.strain = level;
-  saveState();
-  addLog(`Strain встановлено на L${level}`);
-  updateStrainUI();
-  renderStrain();
-}
-
-function updateStrainUI() {
-  const desc = document.getElementById('strain-desc');
-  const badge = document.getElementById('strain-badge');
-  badge.textContent = `STRAIN L${state.strain}`;
-  badge.className = 'badge badge-strain' + (state.strain >= 7 ? ' high' : '');
-
-  const texts = {
-    1: 'L1 — Майже нейтрально. Ідеальний стан.',
-    2: 'L2 — Легке відчуття тонусу.',
-    3: 'L3 — Легкий тонус. Можна продовжувати звичайну активність.',
-    4: 'L4 — Помітний дискомфорт після нахилів або сидіння.',
-    5: 'L5 — М\'язовий спазм середньої сили. Рекомендована декомпресія.',
-    6: 'L6 — Виражений спазм. Уникати осьових навантажень.',
-    7: 'L7 — Сильний дискомфорт. Потрібна сувора декомпресія.',
-    8: 'L8 — Високий рівень. Тільки лежачі/сидячі протоколи.',
-    9: 'L9 — Критичний. Zero-Standing Mode рекомендовано увімкнути.',
-    10: 'L10 — Максимальний. Повний відпочинок + протокол 90/90.'
-  };
-  desc.textContent = texts[state.strain] || '';
-}
-
-function toggleZeroStanding() {
-  state.zeroStanding = !state.zeroStanding;
-  saveState();
-  document.getElementById('zero-standing').classList.toggle('on', state.zeroStanding);
-  addLog(`Zero-Standing Mode: ${state.zeroStanding ? 'УВІМКНЕНО' : 'вимкнено'}`);
-  if (state.zeroStanding) {
-    document.getElementById('quick-status').textContent =
-      'Zero-Standing Mode активний. Усі задачі, що вимагають стояння >10 хв, заблоковані.';
+  function save() {
+    if (S.log.length > 35) S.log.length = 35;
+    try { localStorage.setItem(KEY, JSON.stringify(S)); }
+    catch(_){ S.log = S.log.slice(0,12); localStorage.setItem(KEY, JSON.stringify(S)); }
   }
-}
+  function log(m) {
+    S.log.unshift({ ts: Date.now(), m });
+    save();
+    renderLog();
+  }
 
-/* ---------- PROTOCOLS ---------- */
-function startProtocol(type) {
-  const overlay = document.getElementById('timer-overlay');
-  const timeEl = document.getElementById('overlay-time');
-  const labelEl = document.getElementById('overlay-label');
-  const guideEl = document.getElementById('overlay-guide');
+  /* Procedural bio-frequencies */
+  function tone(freq=528, dur=0.18, type='sine') {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch(_){}
+  }
+  function chime() {
+    tone(432, 0.12);
+    setTimeout(() => tone(528, 0.2), 110);
+    if (navigator.vibrate) navigator.vibrate([160,70,160]);
+  }
 
-  let seconds = type === 'decomp' ? 300 : 420; // 5 or 7 min
-  labelEl.textContent = type === 'decomp' ? 'Декомпресія 90/90' : 'Chandra Namaskar';
-  guideEl.innerHTML = type === 'decomp'
-    ? 'Ляж на спину. Ноги на стіл/диван під 90°. Коліна 90°. Дихай 4 сек вдих / 8 сек видих. Розслабляй поперек і Psoas.'
-    : 'Повільні бічні нахили стоячи або сидячи. Без скручувань і осьових згинів. Рухайся за диханням. 6–8 циклів на бік.';
+  function left(end) { return end ? Math.max(0, Math.ceil((end - Date.now())/1000)) : 0; }
+  function fmt(s) {
+    const m = Math.floor(s/60), sec = s%60;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  function meetTs(str) {
+    const [h,m] = str.split(':').map(Number);
+    const d = new Date(); d.setHours(h,m,0,0); return d.getTime();
+  }
+  function collide(end) {
+    if (!end) return false;
+    const now = Date.now();
+    return MEETS.some(x => { const t = meetTs(x.t); return t > now && t < end; });
+  }
 
-  overlay.classList.add('show');
-  clearInterval(protocolInterval);
-  protocolInterval = setInterval(() => {
-    seconds--;
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    timeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    if (seconds <= 0) {
-      stopProtocol();
-      addLog(`Протокол ${labelEl.textContent} завершено`);
-      if (state.strain > 3) setStrain(Math.max(1, state.strain - 2));
+  /* Elastic timeline */
+  function renderWave() {
+    const w = document.getElementById('wave');
+    if (!w.children.length) {
+      for (let h=8; h<=22; h++) {
+        const s = document.createElement('div');
+        s.className = 'wave-seg';
+        s.dataset.h = h;
+        s.innerHTML = `<div class="h">${h}</div>`;
+        w.appendChild(s);
+      }
     }
-  }, 1000);
-}
+    const now = new Date();
+    const ch = now.getHours();
+    const highStrain = S.strain >= 6;
 
-function stopProtocol() {
-  clearInterval(protocolInterval);
-  document.getElementById('timer-overlay').classList.remove('show');
-}
+    w.querySelectorAll('.wave-seg').forEach(s => {
+      const h = +s.dataset.h;
+      s.className = 'wave-seg';
+      if (h < ch) s.classList.add('past');
+      else if (h === ch) s.classList.add('now');
+      if (MEETS.some(m => parseInt(m.t) === h)) s.classList.add('event');
+      if ([9,12,16,20].includes(h)) s.classList.add('buffer');
 
-/* ---------- METABOLIC ---------- */
-function selectProtein(el, type) {
-  document.querySelectorAll('.pair-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-
-  const pairings = {
-    tefteli: { name: 'Спагеті / Паста твердих сортів', time: 8 },
-    chicken: { name: 'Рис basmati або кіноа', time: 12 },
-    fish: { name: 'Картопля al dente або кус-кус', time: 10 },
-    tofu: { name: 'Соба / гречана локшина', time: 7 }
-  };
-  const p = pairings[type];
-  document.getElementById('pairing-result').textContent =
-    `→ Оптимально: ${p.name} (${p.time} хв варки, Zero-Standing)`;
-
-  startCookTimer(p.time * 60, p.name);
-  addLog(`Обрано базу: ${el.querySelector('strong').textContent} → ${p.name}`);
-}
-
-function startCookTimer(seconds, label) {
-  clearInterval(cookInterval);
-  const wrap = document.getElementById('cook-timer');
-  const timeEl = document.getElementById('cook-time');
-  const labelEl = document.getElementById('cook-label');
-  wrap.style.display = 'flex';
-  labelEl.textContent = label;
-
-  let remaining = seconds;
-  const tick = () => {
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    timeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    if (remaining <= 0) {
-      clearInterval(cookInterval);
-      timeEl.textContent = 'ГОТОВО';
-      timeEl.style.color = 'var(--green)';
-      addLog(`Таймер варіння завершено: ${label}`);
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    }
-    remaining--;
-  };
-  tick();
-  cookInterval = setInterval(tick, 1000);
-}
-
-function stopCookTimer() {
-  clearInterval(cookInterval);
-  document.getElementById('cook-timer').style.display = 'none';
-  document.getElementById('cook-time').style.color = 'var(--accent)';
-}
-
-/* ---------- LAUNDRY DAEMON ---------- */
-function renderLaundry() {
-  const list = document.getElementById('laundry-list');
-  list.innerHTML = state.laundry.map(item => {
-    let statusClass = item.status;
-    let timerText = '';
-    if (item.status === 'running') {
-      const m = Math.floor(item.remaining / 60);
-      const s = item.remaining % 60;
-      timerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    } else if (item.status === 'done') timerText = '✓ Виконано';
-    else timerText = 'Відкладено';
-
-    // Collision check
-    const hasConflict = item.status === 'running' && checkCollision(item.remaining);
-    if (hasConflict) statusClass += ' conflict';
-
-    return `
-      <div class="laundry-item ${statusClass}">
-        <div class="laundry-info">
-          <strong>${item.label}</strong>
-          ${hasConflict ? '<div style="font-size:11px;color:var(--red);">⚠ Конфлікт зі зустріччю</div>' : ''}
-        </div>
-        <div class="laundry-timer">${timerText}</div>
-      </div>`;
-  }).join('');
-
-  // Update collision banner
-  const anyConflict = state.laundry.some(i => i.status === 'running' && checkCollision(i.remaining));
-  document.getElementById('collision-banner').classList.toggle('show', anyConflict);
-}
-
-function checkCollision(remainingSec) {
-  const now = new Date();
-  const end = new Date(now.getTime() + remainingSec * 1000);
-  return state.meetings.some(m => {
-    const [h, min] = m.time.split(':').map(Number);
-    const meet = new Date(now);
-    meet.setHours(h, min, 0, 0);
-    return meet > now && meet < end;
-  });
-}
-
-function addLaundry(minutes) {
-  const id = Date.now();
-  const remaining = minutes * 60;
-  const hasConflict = checkCollision(remaining);
-
-  if (hasConflict) {
-    alert('Конфлікт розкладу: таймер перетинається зі зустріччю. Змістіть запуск.');
-  }
-
-  // Find first pending or add new
-  let target = state.laundry.find(l => l.status === 'pending');
-  if (target) {
-    target.status = 'running';
-    target.remaining = remaining;
-  } else {
-    state.laundry.push({
-      id,
-      label: `Партія №${state.laundry.length + 1}`,
-      status: 'running',
-      remaining
-    });
-  }
-  saveState();
-  addLog(`Додано таймер прання: ${minutes} хв`);
-  renderLaundry();
-  startLaundryTicker();
-}
-
-function startLaundryTicker() {
-  clearInterval(laundryInterval);
-  laundryInterval = setInterval(() => {
-    let changed = false;
-    state.laundry.forEach(item => {
-      if (item.status === 'running' && item.remaining > 0) {
-        item.remaining--;
-        changed = true;
-        if (item.remaining <= 0) {
-          item.status = 'done';
-          addLog(`${item.label} завершено`);
-          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-        }
+      // Temporal Elasticity
+      if (highStrain) {
+        if ([10,13,15,17].includes(h)) s.classList.add('compressed'); // shrink chores
+        if ([11,14,18,19].includes(h) || h === ch) s.classList.add('expanded'); // expand recovery / meetings
       }
     });
-    if (changed) {
-      saveState();
-      renderLaundry();
+
+    const total = 15*60;
+    const cur = (ch-8)*60 + now.getMinutes();
+    document.getElementById('scan').style.left = Math.max(0, Math.min(100, (cur/total)*100)) + '%';
+  }
+
+  /* Strain closed-loop */
+  function renderStrain() {
+    const ring = document.getElementById('strain-ring');
+    ring.innerHTML = '';
+    for (let i=1; i<=10; i++) {
+      const n = document.createElement('button');
+      n.className = 's-node' + (i===S.strain?' active':'') + (i>=7?' crit':'');
+      n.textContent = i;
+      n.onclick = () => setStrain(i);
+      ring.appendChild(n);
     }
-  }, 1000);
-}
+    document.getElementById('strain-msg').textContent = STRAIN[S.strain];
+    const pill = document.getElementById('strain-pill');
+    pill.textContent = 'L'+S.strain;
+    pill.className = 'pill pill-strain' + (S.strain>=7?' crit':'');
 
-/* ---------- CHECKLIST ---------- */
-function renderChecklist() {
-  const list = document.getElementById('checklist');
-  list.innerHTML = state.checklist.map(item => `
-    <div class="check-item">
-      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})">
-      <span>${item.text}</span>
-    </div>
-  `).join('');
-
-  const pfand = state.checklist.find(i => i.pfand);
-  document.getElementById('pfand-alert').style.display =
-    pfand && !pfand.done ? 'block' : 'none';
-}
-
-function toggleCheck(id) {
-  const item = state.checklist.find(i => i.id === id);
-  if (item) {
-    item.done = !item.done;
-    saveState();
-    renderChecklist();
-    addLog(`Чек-лист: ${item.text} → ${item.done ? '✓' : '☐'}`);
+    // Dynamic hue shift
+    document.documentElement.style.setProperty('--strain-hue', S.strain >= 7 ? 350 : S.strain >= 5 ? 30 : 180);
   }
-}
 
-/* ---------- CALIBRATION ---------- */
-function renderCalib() {
-  const day = state.calibDay;
-  const pct = Math.round((day / 60) * 100);
-  document.getElementById('calib-day').textContent = day;
-  document.getElementById('calib-pct').textContent = pct + '%';
-  document.getElementById('calib-fill').style.width = pct + '%';
-}
-
-function renderLog() {
-  const list = document.getElementById('log-list');
-  if (state.log.length === 0) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">Лог порожній. Дії з\'являться тут.</div>';
-    return;
+  function setStrain(v) {
+    S.strain = v;
+    if (v >= 7 && !S.zero) {
+      S.zero = true;
+      log(`L${v} → Zero-Standing Nexus активовано`);
+    }
+    if (v >= 6) log(`Еластичність: побутові слоти стиснуто`);
+    save();
+    renderStrain();
+    renderZero();
+    renderWave();
+    log(`Біоконтур → L${v}`);
   }
-  list.innerHTML = state.log.slice(0, 30).map(e => {
-    const t = new Date(e.ts).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    return `<div class="log-entry"><span class="time">${t}</span><span class="msg">${e.msg}</span></div>`;
-  }).join('');
-}
 
-function exportLog() {
-  const data = JSON.stringify(state, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `lifeos-export-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  addLog('Експорт JSON виконано');
-}
-
-function clearStorage() {
-  if (confirm('Очистити весь localStorage? Це скине всі дані.')) {
-    localStorage.removeItem(STORAGE_KEY);
-    state = structuredClone(defaultState);
-    saveState();
-    location.reload();
+  function renderZero() {
+    document.getElementById('nexus').classList.toggle('on', S.zero);
+    const st = document.getElementById('status');
+    if (S.zero) {
+      st.textContent = 'Zero-Standing Nexus · вертикальні задачі заблоковано · пріоритет декомпресії';
+      st.style.color = 'var(--amber)';
+    } else {
+      st.textContent = 'Симбіоз активний · Фаза тіньового калібрування';
+      st.style.color = 'var(--dim)';
+    }
   }
-}
 
-/* ---------- NAVIGATION ---------- */
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  /* Protocol */
+  function startProto(type) {
+    const cfg = {
+      decomp: { title:'Psoas Release 90/90', sec:300, guide:'Ляж. Ноги на 90°. Коліна 90°. Вдих 4 · видих 8. Розслаб здухвинно-поперековий. Не рухайся.' },
+      chandra:{ title:'Chandra Flow', sec:420, guide:'Повільні бічні дуги. Без осьових згинів і скручувань. Дихай у рух. 6–8 циклів на бік.' }
+    }[type];
+    S.proto = { end: Date.now()+cfg.sec*1000, title:cfg.title, guide:cfg.guide };
+    save();
+    showVeil();
+    log(`Цикл: ${cfg.title}`);
+  }
+  function showVeil() {
+    document.getElementById('veil').classList.add('show');
+    document.getElementById('veil-title').textContent = S.proto.title;
+    document.getElementById('veil-guide').textContent = S.proto.guide;
+    updateVeil();
+  }
+  function updateVeil() {
+    if (!S.proto.end) return;
+    const l = left(S.proto.end);
+    document.getElementById('veil-time').textContent = fmt(l);
+    if (l<=0) {
+      S.proto.end = null; save();
+      document.getElementById('veil').classList.remove('show');
+      chime();
+      log(`Цикл завершено`);
+      if (S.strain > 2) setStrain(Math.max(1, S.strain-2));
+    }
+  }
+  function stopProto() {
+    S.proto.end = null; save();
+    document.getElementById('veil').classList.remove('show');
+  }
+
+  /* Metabolic synergy */
+  function startCook(key) {
+    const p = PAIR[key];
+    // Predictive: if high strain or meeting soon — prefer shorter cook
+    const nextMeet = MEETS.map(m => meetTs(m.t)).filter(t => t > Date.now()).sort()[0];
+    const minsToMeet = nextMeet ? (nextMeet - Date.now())/60000 : 999;
+    let note = p.note;
+    if (S.strain >= 6) note += ' · адаптовано під високий strain';
+    if (minsToMeet < 45) note += ' · коротке вікно до гравітації';
+
+    S.cook = { end: Date.now()+p.s*1000, name:p.n };
+    save();
+    document.getElementById('synergy').textContent = `→ ${p.n} · ${note}`;
+    document.getElementById('cook-hud').classList.add('show');
+    document.getElementById('cook-name').textContent = p.n;
+    log(`Синергія: ${p.n}`);
+    updateCook();
+  }
+  function updateCook() {
+    if (!S.cook.end) { document.getElementById('cook-hud').classList.remove('show'); return; }
+    const l = left(S.cook.end);
+    const el = document.getElementById('cook-digit');
+    el.textContent = l>0 ? fmt(l) : 'ГОТОВО';
+    el.style.color = l>0 ? 'var(--aqua)' : 'var(--jade)';
+    if (l<=0) { S.cook.end=null; save(); chime(); log('Метаболічний цикл завершено'); }
+  }
+  function stopCook() { S.cook.end=null; save(); document.getElementById('cook-hud').classList.remove('show'); }
+
+  /* Daemons */
+  function renderDaemons() {
+    let conflict = false;
+    document.getElementById('daemons').innerHTML = S.laundry.map(item => {
+      let cls = 'done', timer = '●';
+      if (!item.done && item.end) {
+        const l = left(item.end);
+        if (l>0) {
+          cls = 'running';
+          timer = fmt(l);
+          if (collide(item.end)) { cls += ' conflict'; conflict = true; }
+        } else {
+          item.done = true; item.end = null;
+          chime(); log(`${item.label} завершено`);
+        }
+      } else if (!item.done) { cls=''; timer='○'; }
+      return `<div class="daemon-item ${cls}">
+        <div><strong style="font-size:13px">${item.label}</strong>
+        ${cls.includes('conflict')?'<div style="font-size:11px;color:var(--plasma);margin-top:2px">⚠ Конфлікт</div>':''}</div>
+        <div class="daemon-time">${timer}</div></div>`;
+    }).join('');
+    document.getElementById('alert').classList.toggle('show', conflict);
+    save();
+  }
+
+  function addDaemon(min) {
+    const end = Date.now() + min*60*1000;
+    if (collide(end) && !confirm(`Потік ${min} хв перетинає гравітаційний центр.\nЗапустити?`)) return;
+    let slot = S.laundry.find(x => x.done || !x.end);
+    if (slot) { slot.done=false; slot.end=end; }
+    else S.laundry.push({ id:Date.now(), label:`Потік ${S.laundry.length+1}`, end, done:false });
+    save(); log(`Демон +${min}хв`); renderDaemons();
+  }
+
+  /* Checks */
+  function renderChecks() {
+    document.getElementById('checks').innerHTML = S.checks.map(c => `
+      <label class="check-row">
+        <input type="checkbox" data-id="${c.id}" ${c.done?'checked':''}>
+        <span>${c.txt}</span>
+      </label>`).join('');
+    const pf = S.checks.find(c=>c.pfand);
+    document.getElementById('pfand').classList.toggle('show', pf && !pf.done);
+    document.querySelectorAll('#checks input').forEach(inp => {
+      inp.onchange = () => {
+        const c = S.checks.find(x=>x.id===+inp.dataset.id);
+        if (c) { c.done=inp.checked; save(); renderChecks(); log(`${c.txt} → ${c.done?'✓':'○'}`); }
+      };
+    });
+  }
+
+  /* Calib */
+  function renderCalib() {
+    const p = Math.round(S.day/60*100);
+    document.getElementById('c-day').textContent = S.day;
+    document.getElementById('c-pct').textContent = p+'%';
+    document.getElementById('c-fill').style.width = p+'%';
+  }
+  function renderLog() {
+    const el = document.getElementById('logs');
+    if (!S.log.length) { el.innerHTML = '<div style="font-size:12px;color:var(--dim)">Потік порожній</div>'; return; }
+    el.innerHTML = S.log.slice(0,22).map(e => {
+      const t = new Date(e.ts).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      return `<div class="log-line"><span class="t">${t}</span><span>${e.m}</span></div>`;
+    }).join('');
+  }
+
+  /* Master tick */
+  function tick() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    renderWave();
+    updateVeil();
+    updateCook();
+    renderDaemons();
+  }
+
+  /* Nav */
+  document.querySelectorAll('.nav-node').forEach(n => {
+    n.onclick = () => {
+      document.querySelectorAll('.nav-node').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      n.classList.add('active');
+      document.getElementById('view-'+n.dataset.v).classList.add('active');
+    };
   });
-});
 
-/* ---------- INIT ---------- */
-function init() {
+  document.getElementById('nexus').onclick = () => {
+    S.zero = !S.zero; save(); renderZero(); log(`Nexus → ${S.zero?'ON':'OFF'}`);
+  };
+  document.getElementById('act-decomp').onclick = () => startProto('decomp');
+  document.getElementById('act-chandra').onclick = () => startProto('chandra');
+  document.getElementById('veil-stop').onclick = stopProto;
+
+  document.querySelectorAll('.pair-orb').forEach(o => {
+    o.onclick = () => {
+      document.querySelectorAll('.pair-orb').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+      startCook(o.dataset.p);
+    };
+  });
+  document.getElementById('cook-stop').onclick = stopCook;
+  document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => addDaemon(+b.dataset.m));
+
+  document.getElementById('btn-export').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));
+    a.download = `lifeos-neural-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    log('Експорт нейрознімка');
+  };
+  document.getElementById('btn-import').onclick = () => document.getElementById('file').click();
+  document.getElementById('file').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { try { S={...def(),...JSON.parse(r.result)}; save(); location.reload(); } catch{ alert('Помилка JSON'); } };
+    r.readAsText(f);
+  };
+  document.getElementById('btn-wipe').onclick = () => {
+    if (confirm('Повне скидання нейросховища?')) { localStorage.removeItem(KEY); location.reload(); }
+  };
+
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState==='visible') tick(); });
+
+  /* Init */
+  document.getElementById('events').innerHTML = MEETS.map(m =>
+    `<div>▸ <strong style="color:var(--amber)">${m.t}</strong> — ${m.n}</div>`
+  ).join('');
+  document.getElementById('digest').textContent = S.digest;
+
   renderStrain();
-  renderEvents();
-  renderLaundry();
-  renderChecklist();
+  renderZero();
+  renderChecks();
   renderCalib();
   renderLog();
-  document.getElementById('zero-standing').classList.toggle('on', state.zeroStanding);
-  document.getElementById('digest-history').textContent = state.digest;
+  renderDaemons();
 
-  updateClock();
-  setInterval(updateClock, 1000);
-  startLaundryTicker();
+  if (S.proto.end && left(S.proto.end)>0) showVeil();
+  if (S.cook.end && left(S.cook.end)>0) {
+    document.getElementById('cook-hud').classList.add('show');
+    document.getElementById('cook-name').textContent = S.cook.name;
+  }
 
-  addLog('LifeOS запущено · Offline Core Active');
-}
-
-init();
+  tick();
+  setInterval(tick, 1000);
+  log('Neural Shell 2031 · симбіоз встановлено');
+})();
 </script>
 </body>
 </html>
