@@ -1,18 +1,18 @@
 {
-  "name": "LifeOS Core 2031",
-  "short_name": "LifeOS",
-  "description": "Humans 2.0 · Bio-Cybernetic Life Operating System",
-  "start_url": "./",
+  "name": "LifeOS J.A.R.V.I.S.",
+  "short_name": "JARVIS",
+  "description": "Autonomous operator companion · offline-first neural cockpit",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#020408",
-  "theme_color": "#020408",
+  "background_color": "#020406",
+  "theme_color": "#020406",
   "lang": "uk",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23020408'/%3E%3Ccircle cx='256' cy='256' r='120' fill='none' stroke='%2300f0ff' stroke-width='24'/%3E%3Ccircle cx='256' cy='256' r='48' fill='%2300f0ff'/%3E%3C/svg%3E",
-      "sizes": "512x512",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%23020406' width='512' height='512' rx='96'/%3E%3Ccircle cx='256' cy='256' r='120' fill='none' stroke='%236ec8ff' stroke-width='24'/%3E%3Ccircle cx='256' cy='256' r='48' fill='%236ec8ff'/%3E%3C/svg%3E",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
