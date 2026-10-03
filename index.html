@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020408">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="description" content="LifeOS Core 2031 — Bio-Cybernetic Life Operating System">
+  <title>LifeOS · Neural Kernel 2031</title>
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="stylesheet" href="/src/ui/styles/layout.css">
+</head>
+<body>
+  <div class="ambient" id="ambient"></div>
+
+  <!-- Neural Top Bar -->
+  <header class="neural-top">
+    <div class="clock-block">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="clock-label">Local</div>
+    </div>
+    <div class="badge-row">
+      <div class="badge badge-core">KERNEL</div>
+      <div class="badge badge-strain" id="strain-badge">L3</div>
+    </div>
+  </header>
+
+  <!-- Main Stage -->
+  <main class="stage" id="stage">
+
+    <!-- COCKPIT -->
+    <section class="view active" id="view-cockpit" data-view="cockpit">
+      <div class="collision-banner" id="collision-banner">
+        ⚠ Темпоральний конфлікт · демон перетинає гравітаційний центр
+      </div>
+
+      <div class="module">
+        <div class="mod-label">Еластична хроно-хвиля</div>
+        <div class="wave-shell">
+          <div class="wave-segments" id="wave-segments"></div>
+          <div class="scan-beam" id="scan-beam"></div>
+        </div>
+        <div class="wave-legend">
+          <span><i style="background:var(--jade)"></i>Пройдено</span>
+          <span><i style="background:var(--cyan)"></i>Зараз</span>
+          <span><i style="background:var(--plasma)"></i>Гравітація</span>
+          <span><i style="background:rgba(0,255,102,0.5)"></i>Буфер</span>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="mod-label">Гравітаційні центри доби</div>
+        <div id="events-list"></div>
+      </div>
+
+      <div class="module">
+        <div class="mod-label">Нейро-статус симбіозу</div>
+        <div class="status-line" id="sys-status">
+          Neural Kernel 2031 · Фаза тіньового калібрування · Симбіоз активний
+        </div>
+      </div>
+    </section>
+
+    <!-- BIOMECHANICS -->
+    <section class="view" id="view-bio" data-view="bio">
+      <div class="module">
+        <div class="mod-label">Нейро-векторний моніторинг · Хребет</div>
+        <div class="spine-stage">
+          <canvas id="spine-canvas"></canvas>
+          <div class="spine-overlay">
+            <div class="spine-readout" id="spine-readout">L3 · STABLE</div>
+            <div class="spine-hint" id="spine-hint">Сегменти L1–L5<br>реагують на strain</div>
+          </div>
+        </div>
+
+        <div class="strain-arc" id="strain-arc"></div>
+        <div class="strain-text" id="strain-text"></div>
+
+        <div class="orb-row">
+          <button class="orb-btn" id="btn-psoas" type="button">
+            <h4>Psoas Release</h4>
+            <p>90/90 · 5 хв · дихання 4/8</p>
+          </button>
+          <button class="orb-btn" id="btn-chandra" type="button">
+            <h4>Chandra Flow</h4>
+            <p>Бічне розвантаження · 7 хв</p>
+          </button>
+        </div>
+
+        <div class="nexus-row">
+          <div class="nexus-info">
+            <div class="title">Zero-Standing Nexus</div>
+            <div class="sub">Автоблокування вертикальних задач</div>
+          </div>
+          <div class="nexus" id="nexus-switch" role="switch" aria-checked="false"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METABOLIC -->
+    <section class="view" id="view-meta" data-view="meta">
+      <div class="module">
+        <div class="mod-label">Хроно-метаболічний предиктор</div>
+        <div class="status-line" id="digest-ctx" style="margin-bottom:14px;"></div>
+
+        <div class="pair-grid">
+          <button class="pair-cell" data-protein="tefteli" type="button">
+            <strong>Тефтелі</strong>
+            <span>Овочевий соус · білок</span>
+          </button>
+          <button class="pair-cell" data-protein="chicken" type="button">
+            <strong>Курка</strong>
+            <span>Су-від / запечена</span>
+          </button>
+          <button class="pair-cell" data-protein="fish" type="button">
+            <strong>Риба</strong>
+            <span>Парова · омега-3</span>
+          </button>
+          <button class="pair-cell" data-protein="tofu" type="button">
+            <strong>Тофу</strong>
+            <span>Рослинний білок</span>
+          </button>
+        </div>
+
+        <div class="synergy-line" id="synergy-line"></div>
+
+        <div class="cook-panel" id="cook-panel">
+          <div class="cook-digits" id="cook-digits">00:00</div>
+          <div class="cook-meta">
+            <div class="name" id="cook-name">—</div>
+            <div class="tag">Постпрандіальна ясність · 6 год прогноз</div>
+          </div>
+          <button class="ghost-btn" id="cook-stop" type="button">Стоп</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAEMONS -->
+    <section class="view" id="view-daemons" data-view="daemons">
+      <div class="module">
+        <div class="mod-label">Мультипотокові демони · Прання</div>
+        <div class="daemon-stream" id="daemon-stream"></div>
+        <div class="preset-row">
+          <button class="preset-chip" data-min="15" type="button">+15</button>
+          <button class="preset-chip" data-min="45" type="button">+45</button>
+          <button class="preset-chip" data-min="70" type="button">+70</button>
+          <button class="preset-chip" data-min="115" type="button">+115</button>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="mod-label">Geofence · Rewe Checklist</div>
+        <div class="check-stream" id="check-stream"></div>
+        <div class="pfand-beacon" id="pfand-beacon">
+          ⚡ Pfand-чек у кишені — віддати на касі
+        </div>
+      </div>
+    </section>
+
+    <!-- CALIBRATION -->
+    <section class="view" id="view-calib" data-view="calib">
+      <div class="module">
+        <div class="mod-label">Нейро-калібрування профілю</div>
+        <div class="calib-head">
+          <span>День <span id="calib-day">14</span> / 60</span>
+          <span id="calib-pct">23%</span>
+        </div>
+        <div class="calib-track">
+          <div class="calib-fill" id="calib-fill" style="width:23%"></div>
+        </div>
+        <div class="status-line">
+          Фаза 1 · Тіньове спостереження патернів · IndexedDB Vault
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="mod-label">Потік подій ядра</div>
+        <div class="log-feed" id="log-feed"></div>
+        <div class="ctrl-row">
+          <button class="ctrl-chip" id="btn-export" type="button">Експорт Vault</button>
+          <button class="ctrl-chip" id="btn-import" type="button">Імпорт</button>
+          <button class="ctrl-chip danger" id="btn-wipe" type="button">Скинути ядро</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json" hidden>
+      </div>
+    </section>
+  </main>
+
+  <!-- Thumb Zone Navigation -->
+  <nav class="thumb-zone">
+    <button class="nav-node active" data-view="cockpit" type="button">
+      <span class="icon">◈</span>Cockpit
+    </button>
+    <button class="nav-node" data-view="bio" type="button">
+      <span class="icon">◎</span>Bio
+    </button>
+    <button class="nav-node" data-view="meta" type="button">
+      <span class="icon">⬡</span>Meta
+    </button>
+    <button class="nav-node" data-view="daemons" type="button">
+      <span class="icon">⬡</span>Daemons
+    </button>
+    <button class="nav-node" data-view="calib" type="button">
+      <span class="icon">◉</span>Calib
+    </button>
+  </nav>
+
+  <!-- Protocol Veil -->
+  <div class="veil" id="veil">
+    <div class="veil-time" id="veil-time">05:00</div>
+    <div class="veil-title" id="veil-title">—</div>
+    <div class="veil-guide" id="veil-guide"></div>
+    <button class="veil-exit" id="veil-exit" type="button">Завершити цикл</button>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
