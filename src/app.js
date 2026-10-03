@@ -5,12 +5,12 @@ import { ConveyorDaemon } from './modules/conveyor.js';
 import { MetabolicEngine } from './modules/metabolic.js';
 import { ParetoParser } from './modules/paretoParser.js';
 
-// 1. Ініціалізація підсистем
+// 1. Ініціалізація графічного 3D-рушія хребта та фонових демонів
 const spine = new SpineVisualizer('spineCanvas');
 const conveyor = new ConveyorDaemon('laundryQueue', 'collisionAlert');
 const metabolic = new MetabolicEngine('btnPastaTimer', 'pastaTimerDisplay');
 
-// 2. Навігація HUD
+// 2. Навігація в стилі Thumb-Zone Bento-HUD
 document.querySelectorAll('.nav-item').forEach((btn) => {
   btn.addEventListener('click', () => {
     audio.click();
@@ -19,38 +19,40 @@ document.querySelectorAll('.nav-item').forEach((btn) => {
 
     btn.classList.add('active');
     const tabId = btn.getAttribute('data-tab');
-    document.getElementById(`view-${tabId}`).classList.add('active');
+    const panel = document.getElementById(`view-${tabId}`);
+    if (panel) panel.classList.add('active');
   });
 });
 
-// 3. Біомеханіка (Шкала L1-L10)
+// 3. Біомеханіка (Шкала напруги попереку L1–L10)
 const strainInput = document.getElementById('strainRange');
 const strainVal = document.getElementById('strainValueLabel');
 const strainBadge = document.getElementById('strainBadge');
 const jarvisLog = document.getElementById('jarvisLog');
 
-function applyStrain(val) {
+function applyStrainToUI(val) {
   strainVal.innerText = `L${val}`;
   strainBadge.innerText = `L${val} STRAIN`;
   spine.setStrain(val);
 
   if (val >= 6) {
-    jarvisLog.innerText = `«Хума, рівень напруги L${val}. Стояння заблоковано. Тільки стілець або положення 90/90».`;
+    jarvisLog.innerText = `«Хума, рівень напруги L${val}. Будь-яке стояння заблоковано. Тільки робота сидячи або протокол 90/90».`;
     strainBadge.style.color = 'var(--alert-red)';
     strainBadge.style.borderColor = 'var(--alert-red)';
   } else {
-    jarvisLog.innerText = `«Статус L${val}. Показники в межах робочого коридору, сер».`;
+    jarvisLog.innerText = `«Статус L${val}. Параметри крижів у робочому діапазоні, сер».`;
     strainBadge.style.color = 'var(--neon-cyan)';
     strainBadge.style.borderColor = 'var(--neon-cyan)';
   }
 }
 
 strainInput.addEventListener('input', (e) => {
-  store.setStrain(e.target.value);
-  applyStrain(e.target.value);
+  const v = e.target.value;
+  store.setStrain(v);
+  applyStrainToUI(v);
 });
 
-// 4. Pfand прапорець
+// 4. Тригер чека Pfand
 const pfandCheck = document.getElementById('checkPfand');
 const pfandBadge = document.getElementById('pfandBadge');
 pfandCheck.addEventListener('change', (e) => {
@@ -59,7 +61,7 @@ pfandCheck.addEventListener('change', (e) => {
   audio.click();
 });
 
-// 5. Партії прання
+// 5. Демони прання (Келлер)
 document.getElementById('btnAddBatch70').addEventListener('click', () => {
   store.addLaundry(70);
   audio.click();
@@ -71,47 +73,65 @@ document.getElementById('btnAddBatch110').addEventListener('click', () => {
   conveyor.update();
 });
 
-// 6. Omni-Parser Terminal
+// 6. Omni-Parser Terminal & Дистилятор 10%
 const rawInput = document.getElementById('rawInput');
 const paretoContainer = document.getElementById('paretoActionSlots');
 
-function renderPareto(insights) {
+function renderParetoActions(actions) {
   paretoContainer.innerHTML = '';
-  if (insights.length === 0) {
-    paretoContainer.innerHTML = '<div class="empty-state">Критичних тригерів не виявлено. 90% шуму відфільтровано.</div>';
+  if (!actions || actions.length === 0) {
+    paretoContainer.innerHTML = '<div class="empty-state">90% шуму відсіяно. Критичних дій наразі немає. Скиньте текст або диктуйте в термінал.</div>';
     return;
   }
 
-  insights.forEach((ins) => {
+  actions.forEach((act) => {
     const card = document.createElement('div');
     card.className = 'pareto-card';
     card.innerHTML = `
-      <span>${ins.title}</span>
-      <button class="tech-btn primary">${ins.actionLabel}</button>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-weight: 700; color: var(--text-primary);">${act.title}</span>
+        <span style="font-size: 10px; color: var(--text-muted);">${act.desc}</span>
+      </div>
+      <button class="tech-btn primary" style="white-space: nowrap; margin-left: 8px;">${act.actionLabel}</button>
     `;
-    card.querySelector('button').addEventListener('click', () => ins.execute());
+    card.querySelector('button').addEventListener('click', () => {
+      act.execute();
+      store.removeParetoAction(act.id);
+      audio.click();
+    });
     paretoContainer.appendChild(card);
   });
 }
 
-document.getElementById('btnParseRaw').addEventListener('click', () => {
+// Запуск аналізу
+function executeParser() {
+  const text = rawInput.value;
+  if (!text.trim()) return;
   audio.focusPulse();
-  const insights = ParetoParser.distill(rawInput.value);
-  renderPareto(insights);
-  document.querySelector('[data-tab="cockpit"]').click();
-});
+  const distilled = ParetoParser.distill(text);
+  store.setParetoActions(distilled);
+  renderParetoActions(distilled);
+  jarvisLog.innerText = `«Оброблено. 90% шуму відфільтровано, виділено ${distilled.length} ключові дії».`;
+  
+  // Автоматичний перехід на головний кокпіт для виконання дій
+  const navCockpit = document.querySelector('[data-tab="cockpit"]');
+  if (navCockpit) navCockpit.click();
+}
+
+document.getElementById('btnParseRaw').addEventListener('click', executeParser);
 
 document.getElementById('btnPasteClip').addEventListener('click', async () => {
   try {
-    const text = await navigator.clipboard.readText();
-    rawInput.value = text;
+    const clipText = await navigator.clipboard.readText();
+    rawInput.value = clipText;
     audio.click();
+    executeParser();
   } catch (err) {
-    jarvisLog.innerText = '«Буфер обміну недоступний. Вставте текст вручну».';
+    jarvisLog.innerText = '«Буфер обміну недоступний. Вставте текст у поле вручну».';
   }
 });
 
-// 7. Голосове введення Web Speech API
+// 7. Голосовий шлюз Web Speech API
 const btnVoice = document.getElementById('btnVoiceInput');
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -120,16 +140,17 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
   btnVoice.addEventListener('click', () => {
     audio.click();
-    recognition.start();
-    jarvisLog.innerText = '«Слухаю вхідні дані, Хума... Говоріть».';
+    try {
+      recognition.start();
+      jarvisLog.innerText = '«Слухаю оператора, Хума... Говоріть».';
+    } catch (e) {}
   });
 
   recognition.onresult = (event) => {
-    rawInput.value = event.results[0][0].transcript;
+    const spoken = event.results[0][0].transcript;
+    rawInput.value = spoken;
     audio.focusPulse();
-    const insights = ParetoParser.distill(rawInput.value);
-    renderPareto(insights);
-    document.querySelector('[data-tab="cockpit"]').click();
+    executeParser();
   };
 } else {
   btnVoice.style.display = 'none';
@@ -151,23 +172,32 @@ document.getElementById('btnDecomp').addEventListener('click', () => {
     if (s === 0) {
       clearInterval(decompInterval);
       audio.relaxPulse();
-      jarvisLog.innerText = '«Сесію декомпресії завершено. М\'язи розслаблені».';
+      jarvisLog.innerText = '«Сесію декомпресії 90/90 завершено. Фасції попереку розвантажені».';
     }
   }, 1000);
 });
 
-// 9. Годинник і фоновий такт
+// 9. Реактивна підписка на оновлення стану
+store.subscribe((state) => {
+  renderParetoActions(state.paretoActions);
+});
+
+// 10. Системний годинник та фоновий такт
 setInterval(() => {
   const now = new Date();
-  document.getElementById('sysClock').innerText = now.toTimeString().split(' ')[0];
+  const clockEl = document.getElementById('sysClock');
+  if (clockEl) clockEl.innerText = now.toTimeString().split(' ')[0];
   conveyor.update();
 }, 1000);
 
-// Реєстрація Service Worker для повної офлайн-роботи
+// Реєстрація Service Worker (100% Offline)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// Початковий запуск
-applyStrain(store.state.strain);
+// Первинний запуск інтерфейсу
+applyStrainToUI(store.state.strain);
+pfandCheck.checked = store.state.pfandInPocket;
+pfandBadge.style.display = store.state.pfandInPocket ? 'inline-block' : 'none';
+renderParetoActions(store.state.paretoActions);
 conveyor.update();
