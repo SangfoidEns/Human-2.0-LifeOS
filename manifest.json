@@ -1,7 +1,7 @@
 {
   "name": "HUMA2.0 Autonomous Life-Core",
   "short_name": "HUMA2.0",
-  "description": "Персональна біокібернетична операційна оболонка оператора",
+  "description": "Автономна біокібернетична операційна оболонка оператора",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#020408",
