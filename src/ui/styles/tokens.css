@@ -1,0 +1,57 @@
+/* LifeOS Core 2031 · Design Tokens
+   Cyber-Organic · Quantum Spectrum · 2031 */
+
+:root {
+  /* Core surfaces */
+  --abyss:          #020408;
+  --slate:          #0a0f18;
+  --slate-2:        #0f1624;
+  --slate-3:        #151e30;
+
+  /* Glass layers */
+  --glass:          rgba(15, 22, 36, 0.62);
+  --glass-heavy:    rgba(10, 15, 24, 0.78);
+  --glass-light:    rgba(20, 32, 52, 0.45);
+
+  /* Borders & glow */
+  --border:         rgba(0, 240, 255, 0.10);
+  --border-glow:    rgba(0, 240, 255, 0.28);
+  --border-subtle:  rgba(0, 240, 255, 0.06);
+
+  /* Accent spectrum */
+  --cyan:           #00f0ff;
+  --cyan-dim:       rgba(0, 240, 255, 0.45);
+  --cyan-soft:      rgba(0, 240, 255, 0.12);
+  --jade:           #00ff66;
+  --jade-dim:       rgba(0, 255, 102, 0.35);
+  --jade-soft:      rgba(0, 255, 102, 0.10);
+  --plasma:         #ff5500;
+  --plasma-dim:     rgba(255, 85, 0, 0.35);
+  --plasma-soft:    rgba(255, 85, 0, 0.10);
+  --crit:           #ff3366;
+  --crit-dim:       rgba(255, 51, 102, 0.40);
+
+  /* Typography */
+  --text:           #e6f7ff;
+  --text-dim:       #6b849e;
+  --text-mute:      #3d5166;
+
+  /* Font stacks */
+  --mono:           "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+  --sans:           -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* Geometry */
+  --radius:         22px;
+  --radius-sm:      14px;
+  --radius-xs:      10px;
+  --touch:          48px;
+
+  /* Motion */
+  --spring:         cubic-bezier(0.34, 1.45, 0.64, 1);
+  --ease:           cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Dynamic (set by JS) */
+  --strain-level:   3;
+  --hue-shift:      180deg;
+}
