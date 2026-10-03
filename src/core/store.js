@@ -1,40 +1,58 @@
+/**
+ * HUMA2.0 Core State & PubSub Bus v2031.2
+ * Центральне сховище стану з локальним збереженням та шиною підписок.
+ */
 const STORAGE_KEY = 'huma2_state_v2031';
 
 const defaultState = {
   strain: 5,
   pfandInPocket: true,
-  pastaSecTarget: 0,
-  decompSecTarget: 0,
   laundry: [
-    { id: 1, name: 'Партія #1 (Шкарпетки)', endTimestamp: 0, done: true },
-    { id: 2, name: 'Партія #2 (Верхнє)', endTimestamp: 0, done: true },
-    { id: 3, name: 'Партія #3 (Постіль)', endTimestamp: Date.now() + 45 * 60 * 1000, done: false }
+    { id: 1, name: 'Партія #1 (Шкарпетки/База)', endTimestamp: 0, done: true },
+    { id: 2, name: 'Партія #2 (Верхній одяг)', endTimestamp: 0, done: true },
+    { id: 3, name: 'Партія #3 (Постіль)', endTimestamp: Date.now() + 50 * 60 * 1000, done: false }
   ],
-  paretoActions: []
+  paretoActions: [],
+  telemetryLog: ['Ініціалізація ядра HUMA2.0']
 };
 
 class Store {
   constructor() {
     this.state = this.load();
+    this.listeners = [];
   }
 
   load() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultState, ...JSON.parse(raw) } : { ...defaultState };
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? { ...defaultState, ...JSON.parse(raw) } : { ...defaultState };
+    } catch (e) {
+      return { ...defaultState };
+    }
   }
 
   save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-    window.dispatchEvent(new CustomEvent('huma-state-update', { detail: this.state }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+    } catch (e) {}
+    this.notify();
+  }
+
+  subscribe(fn) {
+    this.listeners.push(fn);
+  }
+
+  notify() {
+    this.listeners.forEach((fn) => fn(this.state));
   }
 
   setStrain(val) {
-    this.state.strain = parseInt(val, 10);
+    this.state.strain = Math.min(10, Math.max(1, parseInt(val, 10)));
     this.save();
   }
 
   setPfand(val) {
-    this.state.pfandInPocket = val;
+    this.state.pfandInPocket = Boolean(val);
     this.save();
   }
 
@@ -42,16 +60,28 @@ class Store {
     const nextId = this.state.laundry.length + 1;
     this.state.laundry.push({
       id: nextId,
-      name: `Партія #${nextId}`,
+      name: `Партія #${nextId} (${mins} хв)`,
       endTimestamp: Date.now() + mins * 60 * 1000,
       done: false
     });
+    this.logEvent(`Запущено партію прання #${nextId} на ${mins} хв`);
     this.save();
   }
 
-  addParetoAction(action) {
-    this.state.paretoActions.unshift(action);
-    if (this.state.paretoActions.length > 5) this.state.paretoActions.pop();
+  setParetoActions(actions) {
+    this.state.paretoActions = actions;
+    this.save();
+  }
+
+  removeParetoAction(id) {
+    this.state.paretoActions = this.state.paretoActions.filter((a) => a.id !== id);
+    this.save();
+  }
+
+  logEvent(msg) {
+    const time = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    this.state.telemetryLog.unshift(`[${time}] ${msg}`);
+    if (this.state.telemetryLog.length > 20) this.state.telemetryLog.pop();
     this.save();
   }
 }
