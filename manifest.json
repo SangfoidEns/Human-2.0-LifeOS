@@ -1,0 +1,19 @@
+{
+  "name": "HUMA 2.0",
+  "short_name": "HUMA",
+  "description": "Autonomous life companion · Spine · Football · Stuttgart · JARVIS",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030303",
+  "theme_color": "#030303",
+  "lang": "uk",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
